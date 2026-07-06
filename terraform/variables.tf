@@ -1,23 +1,47 @@
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "project-fortress"
+}
+
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  default     = "dev"
+}
+
 variable "aws_region" {
-  default = "us-east-1"
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
 }
 
 variable "mysql_username" {
-  default = "admin"
+  description = "MySQL username"
+  type        = string
+  default     = "admin"
 }
 
 variable "mysql_password" {
-  default = "StrongMysqlPass123!"
+  description = "MySQL password"
+  type        = string
+  default     = "StrongMysqlPass123!"
 }
 
 variable "postgres_username" {
-  default = "postgresadmin"
+  description = "PostgreSQL username"
+  type        = string
+  default     = "postgresadmin"
 }
 
 variable "postgres_password" {
-  default = "StrongPostgresPass123!"
+  description = "PostgreSQL password"
+  type        = string
+  default     = "StrongPostgresPass123!"
 }
 
 variable "asset_bucket_name" {
-  default = "bedrock-assets-alt-soe-025-3757"
+  description = "S3 bucket name for assets"
+  type        = string
+  default     = "bedrock-assets-alt-soe-025-3757"
 }

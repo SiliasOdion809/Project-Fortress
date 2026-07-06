@@ -1,9 +1,17 @@
 module "networking" {
-  source = "./networking"
+  source = "./modules/networking"
+}
+
+module "kms" {
+  source = "./modules/kms"
+
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = local.common_tags
 }
 
 module "eks" {
-  source = "./eks"
+  source = "./modules/eks"
 
   vpc_id              = module.networking.vpc_id
   private_subnet_ids  = module.networking.private_subnets
@@ -11,7 +19,7 @@ module "eks" {
 }
 
 module "rds" {
-  source = "./rds"
+  source = "./modules/rds"
 
   vpc_id             = module.networking.vpc_id
   private_subnet_ids = module.networking.private_subnets
@@ -21,17 +29,17 @@ module "rds" {
 }
 
 module "dynamodb" {
-  source = "./dynamodb"
+  source = "./modules/dynamodb"
 }
 
 module "s3" {
-  source = "./s3"
+  source = "./modules/s3"
 
   bucket_name = var.asset_bucket_name
 }
 
 module "iam" {
-  source = "./iam"
+  source = "./modules/iam"
 
   assets_bucket_arn = module.s3.assets_bucket_arn
   oidc_provider_arn = module.eks.oidc_provider_arn
@@ -39,7 +47,7 @@ module "iam" {
 }
 
 module "lambda" {
-  source = "./lambda"
+  source = "./modules/lambda"
 
   bucket_name = module.s3.bucket_name
 
@@ -49,16 +57,16 @@ module "lambda" {
 }
 
 module "monitoring" {
-  source = "./monitoring"
+  source = "./modules/monitoring"
 }
 
 module "ecr" {
-  source = "./ecr"
+  source = "./modules/ecr"
 }
 
 module "addons" {
 
-  source = "./addons"
+  source = "./modules/addons"
 
   cluster_name = module.eks.cluster_name
 
