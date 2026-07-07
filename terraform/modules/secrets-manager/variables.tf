@@ -23,3 +23,9 @@ variable "mysql_username" {
   type        = string
   default     = "admin"
 }
+
+variable "postgres_username" {
+  description = "PostgreSQL administrator username"
+  type        = string
+  default     = "postgresadmin"
+}

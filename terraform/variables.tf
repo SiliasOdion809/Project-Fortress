@@ -17,7 +17,7 @@ variable "aws_region" {
 }
 
 variable "mysql_username" {
-  description = "MySQL username"
+  description = "MySQL administrator username"
   type        = string
   default     = "admin"
 }

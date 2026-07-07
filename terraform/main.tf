@@ -10,6 +10,18 @@ module "kms" {
   tags         = local.common_tags
 }
 
+module "secrets_manager" {
+  source = "./modules/secrets-manager"
+
+  project_name   = var.project_name
+  environment    = var.environment
+  mysql_username = var.mysql_username
+
+  kms_key_arn = module.kms.key_arn
+
+  tags = local.common_tags
+}
+
 module "eks" {
   source = "./modules/eks"
 
@@ -24,8 +36,8 @@ module "rds" {
   vpc_id             = module.networking.vpc_id
   private_subnet_ids = module.networking.private_subnets
 
-  mysql_password    = "StrongMysqlPass123!"
-  postgres_password = "StrongPostgresPass123!"
+  mysql_password    = module.secrets_manager.mysql_password
+  postgres_password = module.secrets_manager.postgres_password
 }
 
 module "dynamodb" {

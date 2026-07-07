@@ -9,7 +9,9 @@ variable "mysql_username" {
 }
 
 variable "mysql_password" {
-  sensitive = true
+  description = "MySQL password retrieved from Secrets Manager"
+  type        = string
+  sensitive   = true
 }
 
 variable "postgres_username" {
@@ -17,5 +19,7 @@ variable "postgres_username" {
 }
 
 variable "postgres_password" {
-  sensitive = true
+  description = "PostgreSQL password retrieved from Secrets Manager"
+  type        = string
+  sensitive   = true
 }
