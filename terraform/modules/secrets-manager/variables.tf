@@ -17,3 +17,9 @@ variable "tags" {
   description = "Common resource tags"
   type        = map(string)
 }
+
+variable "mysql_username" {
+  description = "MySQL administrator username"
+  type        = string
+  default     = "admin"
+}
