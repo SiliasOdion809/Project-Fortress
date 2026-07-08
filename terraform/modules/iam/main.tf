@@ -94,3 +94,8 @@ resource "aws_iam_policy" "lambda_cloudwatch_logs" {
 
   policy = data.aws_iam_policy_document.lambda_cloudwatch_logs.json
 }
+
+resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_logs" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_cloudwatch_logs.arn
+}
