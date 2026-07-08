@@ -10,6 +10,22 @@ module "kms" {
   tags         = local.common_tags
 }
 
+module "ssm" {
+  source = "./modules/ssm"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  parameters = {
+    aws_region         = var.aws_region
+    environment        = var.environment
+    cluster_name       = module.eks.cluster_name
+    assets_bucket_name = module.s3.bucket_name
+  }
+
+  tags = local.common_tags
+}
+
 module "secrets_manager" {
   source = "./modules/secrets-manager"
 
