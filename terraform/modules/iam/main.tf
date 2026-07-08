@@ -60,3 +60,37 @@ resource "aws_iam_user_policy" "bedrock_dev_s3_upload" {
     ]
   })
 }
+
+data "aws_iam_policy_document" "lambda_cloudwatch_logs" {
+  statement {
+    sid    = "CreateLogGroup"
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "WriteLogs"
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+
+    resources = [
+      "arn:aws:logs:*:*:log-group:/aws/lambda/project-fortress-*:*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "lambda_cloudwatch_logs" {
+  name        = "project-fortress-lambda-cloudwatch-logs"
+  description = "Customer-managed CloudWatch Logs policy for Project Fortress Lambda functions"
+
+  policy = data.aws_iam_policy_document.lambda_cloudwatch_logs.json
+}
