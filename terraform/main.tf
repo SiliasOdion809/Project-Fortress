@@ -72,6 +72,8 @@ module "iam" {
   assets_bucket_arn = module.s3.assets_bucket_arn
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_provider     = module.eks.oidc_provider
+
+  mysql_secret_arn = module.secrets_manager.mysql_secret_arn
 }
 
 module "lambda" {

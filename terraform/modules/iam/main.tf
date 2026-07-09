@@ -93,3 +93,18 @@ resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_logs" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_cloudwatch_logs.arn
 }
+
+data "aws_iam_policy_document" "lambda_mysql_secret" {
+  statement {
+    sid    = "ReadMySQLSecret"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      var.mysql_secret_arn
+    ]
+  }
+}

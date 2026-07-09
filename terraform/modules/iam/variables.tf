@@ -9,3 +9,8 @@ variable "oidc_provider_arn" {
 variable "oidc_provider" {
   type = string
 }
+
+variable "mysql_secret_arn" {
+  description = "ARN of the MySQL secret"
+  type        = string
+}
