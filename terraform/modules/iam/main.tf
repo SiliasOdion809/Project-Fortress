@@ -108,3 +108,10 @@ data "aws_iam_policy_document" "lambda_mysql_secret" {
     ]
   }
 }
+
+resource "aws_iam_policy" "lambda_mysql_secret" {
+  name        = "project-fortress-lambda-mysql-secret"
+  description = "Allow Lambda to retrieve the MySQL secret from AWS Secrets Manager"
+
+  policy = data.aws_iam_policy_document.lambda_mysql_secret.json
+}
