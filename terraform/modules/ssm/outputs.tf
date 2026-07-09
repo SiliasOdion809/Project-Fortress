@@ -15,3 +15,13 @@ output "parameter_arns" {
     key => parameter.arn
   }
 }
+
+output "environment_parameter_arn" {
+  description = "ARN of the environment parameter"
+  value       = aws_ssm_parameter.environment.arn
+}
+
+output "assets_bucket_parameter_arn" {
+  description = "ARN of the assets bucket parameter"
+  value       = aws_ssm_parameter.assets_bucket.arn
+}

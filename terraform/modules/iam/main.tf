@@ -120,3 +120,19 @@ resource "aws_iam_role_policy_attachment" "lambda_mysql_secret" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_mysql_secret.arn
 }
+
+data "aws_iam_policy_document" "lambda_ssm_parameters" {
+  statement {
+    sid    = "ReadSSMParameters"
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParameter"
+    ]
+
+    resources = [
+      var.environment_parameter_arn,
+      var.assets_bucket_parameter_arn
+    ]
+  }
+}

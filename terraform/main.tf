@@ -23,6 +23,9 @@ module "ssm" {
     assets_bucket_name = module.s3.bucket_name
   }
 
+  environment_parameter_arn = module.ssm.environment_parameter_arn
+  assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
+
   tags = local.common_tags
 }
 
