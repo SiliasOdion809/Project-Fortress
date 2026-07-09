@@ -136,3 +136,15 @@ data "aws_iam_policy_document" "lambda_ssm_parameters" {
     ]
   }
 }
+
+resource "aws_iam_policy" "lambda_ssm_parameters" {
+  name        = "project-fortress-lambda-ssm-parameters"
+  description = "Allow Lambda to read required SSM parameters"
+
+  policy = data.aws_iam_policy_document.lambda_ssm_parameters.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_ssm_parameters" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_ssm_parameters.arn
+}
