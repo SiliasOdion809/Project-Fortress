@@ -18,10 +18,10 @@ output "parameter_arns" {
 
 output "environment_parameter_arn" {
   description = "ARN of the environment parameter"
-  value       = aws_ssm_parameter.environment.arn
+  value       = aws_ssm_parameter.parameters["environment"].arn
 }
 
 output "assets_bucket_parameter_arn" {
   description = "ARN of the assets bucket parameter"
-  value       = aws_ssm_parameter.assets_bucket.arn
+  value       = aws_ssm_parameter.parameters["assets_bucket_name"].arn
 }
