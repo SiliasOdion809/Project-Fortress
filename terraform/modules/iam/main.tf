@@ -115,3 +115,8 @@ resource "aws_iam_policy" "lambda_mysql_secret" {
 
   policy = data.aws_iam_policy_document.lambda_mysql_secret.json
 }
+
+resource "aws_iam_role_policy_attachment" "lambda_mysql_secret" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_mysql_secret.arn
+}
