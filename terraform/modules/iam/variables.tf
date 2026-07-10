@@ -46,3 +46,19 @@ variable "environment" {
   type        = string
 }
 
+/*variable "github_repository" {
+  description = "GitHub repository allowed to assume the deployment role"
+  type        = string
+}*/
+
+/*variable "github_branches" {
+  description = "Git branches allowed to assume the deployment role"
+  type        = list(string)
+}*/
+
+
+variable "github_subject_patterns" {
+  description = "Allowed GitHub OIDC subject patterns"
+  type        = list(string)
+}
+

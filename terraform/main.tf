@@ -88,6 +88,11 @@ module "iam" {
   assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
 
   github_oidc_provider_arn = module.oidc.provider_arn
+
+  github_subject_patterns = [
+    "repo:SiliasOdion809/Project-Fortress:ref:refs/heads/main",
+    "repo:SiliasOdion809/Project-Fortress:ref:refs/heads/feature/*"
+  ]
 }
 
 module "lambda" {
