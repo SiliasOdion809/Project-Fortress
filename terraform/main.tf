@@ -66,8 +66,17 @@ module "s3" {
   bucket_name = var.asset_bucket_name
 }
 
+module "oidc" {
+  source = "./modules/oidc"
+}
+
 module "iam" {
   source = "./modules/iam"
+
+
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = local.common_tags
 
   assets_bucket_arn = module.s3.assets_bucket_arn
   oidc_provider_arn = module.eks.oidc_provider_arn
@@ -77,6 +86,8 @@ module "iam" {
 
   environment_parameter_arn   = module.ssm.environment_parameter_arn
   assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
+
+  github_oidc_provider_arn = module.oidc.provider_arn
 }
 
 module "lambda" {
