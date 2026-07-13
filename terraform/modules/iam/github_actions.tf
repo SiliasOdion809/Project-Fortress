@@ -64,10 +64,12 @@ data "aws_iam_policy_document" "github_deployment_permissions" {
     actions = [
       "s3:GetObject",
       "s3:PutObject",
-      "s3:DeleteObject"
+      "s3:DeleteObject",
+      "s3:ListBucket"
     ]
 
     resources = [
+      "arn:aws:s3:::project-bedrock-tfstate-silias",
       "arn:aws:s3:::project-bedrock-tfstate-silias/*"
     ]
   }
