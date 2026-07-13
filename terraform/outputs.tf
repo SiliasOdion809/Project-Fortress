@@ -71,3 +71,8 @@ output "postgres_password" {
   value     = var.postgres_password
   sensitive = true
 }
+
+output "github_deployment_role_arn" {
+  description = "ARN of the GitHub Deployment Role"
+  value       = module.iam.github_deployment_role_arn
+}

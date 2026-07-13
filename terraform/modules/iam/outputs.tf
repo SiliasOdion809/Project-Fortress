@@ -13,3 +13,8 @@ output "bedrock_dev_view_arn" {
 output "alb_controller_role_arn" {
   value = aws_iam_role.alb_controller.arn
 }
+
+output "github_deployment_role_arn" {
+  description = "ARN of the GitHub Deployment Role"
+  value       = aws_iam_role.github_deployment.arn
+}
