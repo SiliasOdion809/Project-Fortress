@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "github_deployment_trust" {
     ]
 
     principals {
-      type        = "Federated"
+      type = "Federated"
       identifiers = [
         var.github_oidc_provider_arn
       ]
