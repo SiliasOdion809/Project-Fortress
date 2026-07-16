@@ -14,3 +14,8 @@ variable "cluster_name" {
   type = string
   default = "project-bedrock-cluster"
 }
+
+variable "github_deployment_role_arn" {
+  description = "GitHub Actions deployment role ARN"
+  type        = string
+}

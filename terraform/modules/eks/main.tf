@@ -40,4 +40,22 @@ module "eks" {
   tags = {
     Project = "karatu-2025-capstone"
   }
+ 
+
+ access_entries = {
+    github_actions = {
+      principal_arn = var.github_deployment_role_arn
+
+      policy_associations = {
+        cluster_admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
 }
