@@ -47,6 +47,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "s3:GetBucketLocation",
       "s3:GetBucketPolicy",
       "s3:GetBucketVersioning",
+      "s3:GetBucketCors",
+      "s3:GetBucketTagging",
       "s3:GetBucketPublicAccessBlock",
       "s3:PutBucketPublicAccessBlock",
       "s3:GetEncryptionConfiguration",
@@ -264,7 +266,9 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
     effect = "Allow"
 
     actions = [
-      "rds:DescribeDBSubnetGroups"
+      "rds:DescribeDBSubnetGroups",
+      "rds:Describe*",
+      "rds:ListTagsForResource"
     ]
 
     resources = ["*"]
