@@ -43,10 +43,15 @@ jobs:
         run: |
           aws eks update-kubeconfig \
             --region ${{ vars.AWS_REGION }} \
-            --name project-bedrock-cluster  
+            --name project-bedrock-cluster
+
+      - name: Verify cluster access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
 
       - name: Terraform Plan
-        run: terraform plan -no-color
+        run: terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
