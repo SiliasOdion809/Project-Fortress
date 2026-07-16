@@ -39,6 +39,12 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ vars.AWS_REGION }} \
+            --name project-bedrock-cluster  
+
       - name: Terraform Plan
         run: terraform plan -no-color
 
