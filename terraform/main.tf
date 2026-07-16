@@ -125,4 +125,8 @@ module "addons" {
   vpc_id = module.networking.vpc_id
 
   alb_controller_role_arn = module.iam.alb_controller_role_arn
+
+  depends_on = [
+    module.eks
+  ]
 }

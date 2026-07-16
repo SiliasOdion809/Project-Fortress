@@ -56,7 +56,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "s3:ListBucket",
       "s3:GetObject",
       "s3:PutObject",
-      "s3:DeleteObject"
+      "s3:DeleteObject",
+      "s3:GetBucketAcl"
     ]
 
     resources = ["*"]
@@ -253,7 +254,23 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
 
     resources = ["*"]
   }
+
+  #
+  # RDS
+  #
+  statement {
+    sid    = "RDS"
+
+    effect = "Allow"
+
+    actions = [
+      "rds:DescribeDBSubnetGroups"
+    ]
+
+    resources = ["*"]
+  }
 }
+
 
 resource "aws_iam_policy" "github_terraform_permissions" {
 

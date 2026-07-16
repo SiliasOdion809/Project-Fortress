@@ -12,6 +12,10 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart            = "aws-load-balancer-controller"
   namespace        = "kube-system"
   create_namespace = false
+  
+  depends_on = [
+    aws_eks_addon.cloudwatch_observability
+  ]
 
   values = [
     yamlencode({
