@@ -52,6 +52,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "s3:GetBucketPublicAccessBlock",
       "s3:PutBucketPublicAccessBlock",
       "s3:GetEncryptionConfiguration",
+      "s3:GetBucketRequestPayment",
+
       "s3:PutBucketEncryption",
       "s3:CreateBucket",
       "s3:DeleteBucket",
