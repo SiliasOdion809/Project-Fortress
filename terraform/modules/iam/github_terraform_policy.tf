@@ -60,7 +60,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "s3:PutObject",
       "s3:DeleteObject",
       "s3:GetBucketAcl",
-      "s3:GetBucketWebsite"
+      "s3:GetBucketWebsite",
+      "s3:GetAccelerateConfiguration"
     ]
 
     resources = ["*"]
