@@ -45,3 +45,9 @@ variable "asset_bucket_name" {
   type        = string
   default     = "bedrock-assets-alt-soe-025-3757"
 }
+
+variable "enable_addons" {
+  description = "Deploy Kubernetes addons"
+  type        = bool
+  default     = false
+}

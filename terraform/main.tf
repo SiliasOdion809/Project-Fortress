@@ -41,9 +41,9 @@ module "secrets_manager" {
 module "eks" {
   source = "./modules/eks"
 
-  vpc_id              = module.networking.vpc_id
-  private_subnet_ids  = module.networking.private_subnets
-  dynamodb_policy_arn = module.iam.dynamodb_policy_arn
+  vpc_id                     = module.networking.vpc_id
+  private_subnet_ids         = module.networking.private_subnets
+  dynamodb_policy_arn        = module.iam.dynamodb_policy_arn
   github_deployment_role_arn = module.iam.github_deployment_role_arn
 }
 
@@ -116,7 +116,6 @@ module "ecr" {
 }
 
 module "addons" {
-
   source = "./modules/addons"
 
   cluster_name = module.eks.cluster_name
