@@ -43,7 +43,7 @@ jobs:
         run: |
           aws eks update-kubeconfig \
             --name project-bedrock-cluster \
-            --region us-east-1
+            --region us-east-1 \
             --role-arn ${{ vars.AWS_DEPLOYMENT_ROLE_ARN }}
 
       - name: Verify Kubernetes Access
