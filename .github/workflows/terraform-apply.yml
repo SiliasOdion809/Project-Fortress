@@ -79,7 +79,7 @@ jobs:
       - name: Terraform Plan
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
-        run: terraform plan -out=tfplan --no-color
+        run: terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
