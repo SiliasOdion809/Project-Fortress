@@ -52,6 +52,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Debug AWS Identity
+        run: |
+          aws sts get-caller-identity
+          aws eks get-token --cluster-name project-bedrock-cluster
+
       - name: Terraform Init
         run: terraform init
 
