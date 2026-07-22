@@ -115,7 +115,7 @@ module "ecr" {
   source = "./modules/ecr"
 }
 
-module "addons" {
+/*module "addons" {
   source = "./modules/addons"
 
   cluster_name = module.eks.cluster_name
@@ -129,4 +129,5 @@ module "addons" {
   depends_on = [
     module.eks
   ]
-}
+}*/
+

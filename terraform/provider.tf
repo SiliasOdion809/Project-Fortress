@@ -27,7 +27,7 @@ data "aws_eks_cluster_auth" "cluster" {
   ]
 }
 
-provider "kubernetes" {
+/*provider "kubernetes" {
   host = data.aws_eks_cluster.cluster.endpoint
 
   cluster_ca_certificate = base64decode(
@@ -70,4 +70,4 @@ provider "helm" {
       ]
     }
   }
-}
+}*/
