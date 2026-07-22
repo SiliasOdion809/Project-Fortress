@@ -13,7 +13,7 @@ module "eks" {
     "scheduler"
   ]
 
-  enable_cluster_creator_admin_permissions = true
+  enable_cluster_creator_admin_permissions = false
 
   vpc_id = var.vpc_id
 
@@ -56,6 +56,23 @@ module "eks" {
         }
       }
     }
+  
+    cloud_admin = {
+      principal_arn = "arn:aws:iam::561876735341:user/Cloud-admin"
+
+      policy_associations = {
+        cluster_admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
   }
 
 }
+
+
+

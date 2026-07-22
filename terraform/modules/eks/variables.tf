@@ -19,3 +19,7 @@ variable "github_deployment_role_arn" {
   description = "GitHub Actions deployment role ARN"
   type        = string
 }
+
+variable "cloud_admin_arn" {
+  type = string
+}
