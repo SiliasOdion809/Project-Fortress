@@ -1,57 +1,153 @@
-# 🚀 Project Bedrock
-### Production-Grade AWS Infrastructure with Terraform, Amazon EKS & GitHub Actions
+# 🏰 Project Fortress
+
+## Production Hardening of a Production-Grade AWS EKS Platform
+
+> From infrastructure deployment to production operations.
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazonaws)
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?logo=terraform)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-326CE5?logo=kubernetes)
+![Amazon EKS](https://img.shields.io/badge/Amazon-EKS-FF9900?logo=amazonaws)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes)
 ![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=github-actions)
-![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?logo=docker)
+![OIDC](https://img.shields.io/badge/OIDC-Authentication-success)
+![IAM](https://img.shields.io/badge/IAM-Least%20Privilege-blue)
+![Security](https://img.shields.io/badge/Security-Production-green)
 
 ---
 
-## 📖 Overview
+# 📖 Overview
 
-Project Bedrock is a **production-grade cloud infrastructure project** built on Amazon Web Services (AWS) to demonstrate modern Cloud Engineering and DevOps best practices.
+Project Fortress is the next evolution of **Project Bedrock**.
 
-The project provisions a secure, scalable, and highly available Kubernetes platform using **Terraform** and deploys a containerized retail microservices application onto **Amazon Elastic Kubernetes Service (EKS)** through a fully automated **GitHub Actions CI/CD pipeline**.
+While Project Bedrock focused on building a production-grade AWS platform from scratch, Project Fortress focuses on operating that platform using production DevOps and Cloud Security best practices.
 
-This project was developed as my Cloud Engineering Capstone and represents a real-world implementation of Infrastructure as Code, container orchestration, cloud networking, automation, observability, and production deployment practices.
+The project transforms the original infrastructure into a more secure, maintainable, and enterprise-ready platform by implementing identity federation, least-privilege access, centralized secrets management, configuration management, infrastructure hardening, incident recovery practices, and secure CI/CD.
 
----
-
-# 🎯 Project Objectives
-
-- Build production-ready AWS infrastructure
-- Implement Infrastructure as Code using Terraform
-- Deploy containerized microservices on Amazon EKS
-- Automate infrastructure provisioning
-- Automate application deployment
-- Secure cloud resources following AWS best practices
-- Implement monitoring and observability
-- Demonstrate scalable cloud-native architecture
+The goal is to simulate the work performed by a Cloud/DevOps Engineer after an application has already reached production.
 
 ---
 
-# 🏗 Architecture
+# 🎯 Objectives
 
-Project Bedrock consists of a production-ready AWS environment including:
+Project Fortress focuses on:
+
+- Production infrastructure hardening
+- Secure CI/CD using GitHub OIDC
+- Least-Privilege IAM implementation
+- Infrastructure drift prevention
+- Secure secrets management
+- Centralized configuration management
+- Production-ready EKS access management
+- Platform reliability
+- Incident response documentation
+- Operational excellence
+
+---
+
+# 🏗 Project Architecture
+
+Project Fortress extends the Project Bedrock platform by introducing an operational layer around the existing infrastructure.
+
+Core platform includes:
 
 - Amazon VPC
 - Public & Private Subnets
 - Internet Gateway
 - NAT Gateway
-- Bastion Host
-- Amazon EKS Cluster
+- Amazon EKS
 - Managed Node Groups
-- Application Load Balancer
-- Amazon RDS (MySQL)
-- Amazon RDS (PostgreSQL)
+- Amazon RDS
 - Amazon S3
 - AWS Lambda
-- Amazon CloudWatch
-- AWS IAM
-- Security Groups
-- GitHub Actions CI/CD
+- CloudWatch
+- IAM
+- Application Load Balancer
+
+Production enhancements include:
+
+- GitHub OIDC Authentication
+- IAM Roles for GitHub Actions
+- Explicit EKS Access Entries
+- Customer Managed KMS Keys
+- AWS Secrets Manager
+- AWS Systems Manager Parameter Store
+- Infrastructure Drift Recovery
+- Production Incident Documentation
+- Secure Deployment Pipelines
+
+---
+
+# 🚀 Major Improvements over Project Bedrock
+
+## 🔐 Secure Authentication
+
+- Eliminated long-lived AWS access keys
+- GitHub Actions authenticates using OpenID Connect (OIDC)
+- Temporary AWS credentials
+- IAM Trust Policies
+
+---
+
+## 🔒 Infrastructure Security
+
+Implemented:
+
+- Least Privilege IAM
+- Customer Managed KMS Keys
+- Secrets Manager
+- Parameter Store
+- Explicit EKS Access Entries
+- IAM Role separation
+
+---
+
+## ⚙ CI/CD Improvements
+
+GitHub Actions now performs:
+
+- Terraform Validation
+- Terraform Plan
+- Terraform Apply
+- Kubernetes Authentication
+- ALB Controller Installation
+- Infrastructure Validation
+- Automated Deployment
+
+---
+
+## ☸ Kubernetes Hardening
+
+Implemented:
+
+- Explicit Cluster Access Entries
+- Cluster Administrator Role Management
+- Secure kubeconfig generation
+- OIDC-based authentication
+- AWS Load Balancer Controller automation
+
+---
+
+# 🔑 Security Features
+
+✔ GitHub OIDC Authentication
+
+✔ IAM Least Privilege
+
+✔ Secrets Manager
+
+✔ AWS Systems Manager Parameter Store
+
+✔ Customer Managed KMS Keys
+
+✔ IAM Role Separation
+
+✔ Secure Terraform Remote State
+
+✔ Private Networking
+
+✔ Security Groups
+
+✔ Encryption at Rest
 
 ---
 
@@ -59,259 +155,223 @@ Project Bedrock consists of a production-ready AWS environment including:
 
 | Service | Purpose |
 |----------|----------|
-| Amazon EKS | Kubernetes Cluster |
-| Amazon EC2 | Bastion Host & Worker Nodes |
-| Amazon VPC | Networking |
-| Amazon ALB | Application Load Balancer |
-| Amazon RDS | MySQL & PostgreSQL Databases |
-| Amazon S3 | Assets & Terraform Remote State |
-| AWS Lambda | Asset Processing |
-| CloudWatch | Monitoring & Logs |
-| IAM | Identity & Access Management |
-| ECR | Container Image Registry |
+| Amazon EKS | Kubernetes Platform |
+| IAM | Identity Management |
+| IAM OIDC Provider | GitHub Authentication |
+| KMS | Encryption |
+| Secrets Manager | Secret Storage |
+| Systems Manager Parameter Store | Configuration Management |
+| Lambda | Asset Processing |
+| RDS | Databases |
+| CloudWatch | Monitoring |
+| S3 | Assets & Terraform State |
+| ECR | Container Images |
 
 ---
 
-# 🛠 Technology Stack
-
-## Infrastructure
-
-- Terraform
-- AWS CLI
-
-## Container Platform
-
-- Kubernetes
-- Amazon EKS
-- Docker
-- Helm
-- Helmfile
-
-## CI/CD
-
-- GitHub Actions
-
-## Databases
-
-- MySQL
-- PostgreSQL
-- Redis
-
-## Monitoring
-
-- Amazon CloudWatch
-
----
-
-# ⚙ Infrastructure Provisioning
-
-All AWS infrastructure is provisioned using Terraform.
-
-Infrastructure includes:
-
-- VPC
-- Networking
-- EKS Cluster
-- Node Groups
-- IAM Roles
-- Security Groups
-- RDS
-- S3
-- Lambda
-- Monitoring
+# 🛠 Terraform Modules
 
 ```
-terraform init
-
-terraform plan
-
-terraform apply
+terraform/
+│
+├── networking
+├── eks
+├── iam
+├── kms
+├── secrets-manager
+├── ssm
+├── lambda
+├── monitoring
+├── s3
+├── rds
+├── dynamodb
+├── oidc
+└── ecr
 ```
 
 ---
 
-# 🚀 CI/CD Pipeline
-
-Deployment is fully automated using GitHub Actions.
-
-Pipeline stages:
+# 🔄 GitHub Actions Workflow
 
 ```
-Code Commit
-      │
-      ▼
-GitHub Actions
-      │
-      ▼
+Developer
+    │
+    ▼
+GitHub Push
+    │
+    ▼
+OIDC Authentication
+    │
+    ▼
+Terraform Validate
+    │
+    ▼
 Terraform Plan
-      │
-      ▼
+    │
+    ▼
 Terraform Apply
-      │
-      ▼
-Infrastructure Validation
-      │
-      ▼
-Database Provisioning
-      │
-      ▼
-Deploy to Amazon EKS
-      │
-      ▼
-Health Checks
-      │
-      ▼
-Application Ready
+    │
+    ▼
+Update kubeconfig
+    │
+    ▼
+Deploy ALB Controller
+    │
+    ▼
+Verify Kubernetes
+    │
+    ▼
+Infrastructure Ready
 ```
 
-The pipeline automatically:
+---
 
-- provisions infrastructure
-- creates databases
-- configures Kubernetes
-- deploys Helm releases
-- verifies application health
+# 🔒 Identity & Access Management
+
+Project Fortress implements:
+
+- GitHub OIDC Provider
+- GitHub Deployment Role
+- Cloud-admin Access Entry
+- IAM Policies
+- Trust Relationships
+- AmazonEKSClusterAdminPolicy
+- Explicit EKS Access Entries
+
+No cluster access relies on the cluster creator.
 
 ---
 
-# 📦 Application
+# 🔐 Secrets & Configuration
 
-The deployed application is a cloud-native retail microservices platform running on Amazon EKS.
+Secrets stored in AWS Secrets Manager include:
 
-Services include:
+- MySQL Credentials
+- PostgreSQL Credentials
 
-- UI
-- Catalog
-- Cart
-- Checkout
-- Orders
+Configuration stored in Parameter Store includes:
 
-The application demonstrates:
-
-- container orchestration
-- service communication
-- database integration
-- load balancing
-- autoscaling
+- AWS Region
+- Cluster Name
+- Environment
+- Asset Bucket Name
 
 ---
 
-# 🔒 Security
+# 🚨 Incident Response
 
-Security best practices implemented include:
+Project Fortress documents production-style incidents, including:
 
-- Private Subnets
-- IAM Least Privilege
-- IAM Roles for Service Accounts (IRSA)
-- OIDC Authentication
-- Security Groups
-- Secrets Management
-- Encrypted communication
+- Infrastructure Drift
+- Root Cause Analysis
+- Recovery Procedures
+- Lessons Learned
+- Preventive Actions
 
----
-
-# 📊 Monitoring
-
-Monitoring includes:
-
-- CloudWatch Logs
-- CloudWatch Metrics
-- Dashboards
-- Kubernetes Logs
-- EKS Monitoring
+A complete postmortem was created for recovering an EKS cluster after manual infrastructure drift.
 
 ---
 
-# 📈 Results
+# 📈 Operational Improvements
 
-Project outcomes include:
+Implemented:
 
-- 99.9% High Availability
-- Automated Infrastructure Provisioning
-- Fully Automated CI/CD
-- Production-Ready AWS Architecture
-- Secure Cloud Infrastructure
-- Scalable Kubernetes Platform
-- Infrastructure as Code
-- Cloud-Native Deployment
+- Infrastructure Drift Detection
+- Secure Deployment Authentication
+- Production Documentation
+- Terraform Module Refactoring
+- CI/CD Hardening
+- Explicit Access Management
+
+---
+
+# 📊 Results
+
+✔ Production-ready AWS Platform
+
+✔ Secure GitHub Actions Authentication
+
+✔ OIDC Federation
+
+✔ Explicit EKS Access Control
+
+✔ Secure Secret Management
+
+✔ Infrastructure as Code
+
+✔ Enterprise IAM Design
+
+✔ Production Incident Documentation
+
+✔ Automated Deployments
+
+✔ Operational Best Practices
 
 ---
 
 # 📂 Repository Structure
 
 ```
-project-bedrock/
+project-fortress/
 
-├── terraform/
-│   ├── modules/
-│   ├── environments/
-│   ├── networking/
-│   ├── eks/
-│   ├── iam/
-│   ├── monitoring/
-│   ├── lambda/
-│   ├── s3/
-│   └── database/
-│
-├── retail-store-sample-app/
-│
-├── helmfile.yaml
-│
 ├── .github/
 │   └── workflows/
-│       ├── terraform-plan.yml
-│       ├── terraform-apply.yml
-│       └── deploy-retail-store.yml
 │
+├── terraform/
+│   ├── modules/
+│   ├── backend.tf
+│   ├── provider.tf
+│   ├── versions.tf
+│   ├── variables.tf
+│   └── outputs.tf
+│
+├── docs/
+│   ├── incident-reports/
+│   ├── architecture/
+│   └── runbooks/
+│
+├── diagrams/
 ├── scripts/
-│
-└── README.md
+├── kubernetes/
+├── README.md
 ```
-
----
-
-# 📸 Project Walkthrough
-
-The project includes:
-
-- Architecture Diagram
-- Technology Stack
-- CI/CD Pipeline
-- GitHub Actions Workflow
-- Live Application
-- Deployment Results
 
 ---
 
 # 📚 Key Learnings
 
-This project strengthened my knowledge of:
+Project Fortress strengthened my knowledge of:
 
-- AWS Architecture
-- Kubernetes
-- Terraform
-- Infrastructure as Code
-- GitHub Actions
-- Amazon EKS
-- Cloud Networking
+- Production DevOps
+- AWS Security
 - IAM
-- Production Deployment
+- GitHub OIDC
+- Infrastructure Hardening
+- Kubernetes Operations
+- Amazon EKS
+- Terraform Modules
 - Cloud Security
-- CI/CD Automation
-- Cloud Monitoring
+- Incident Management
+- Infrastructure Drift Recovery
+- Production CI/CD
+- AWS KMS
+- AWS Secrets Manager
+- AWS Systems Manager
 
 ---
 
-# 🚀 Future Improvements
+# 🚀 Future Enhancements
 
-- Blue/Green Deployments
-- Canary Releases
 - ArgoCD GitOps
-- AWS WAF Integration
-- Multi-Region Deployment
-- Disaster Recovery Automation
-- Prometheus & Grafana Monitoring
-- Automated Security Scanning
+- External Secrets Operator
+- Prometheus
+- Grafana
+- AWS WAF
+- Falco Runtime Security
+- Kyverno Policies
+- Trivy Image Scanning
+- Policy as Code
+- Multi-Region Disaster Recovery
 
 ---
 
@@ -321,14 +381,13 @@ This project strengthened my knowledge of:
 
 Cloud & DevOps Engineer
 
-📧 Email: siliasodion809@gmail.com
-
-🔗 LinkedIn: https:www.linkedin.com/in/siliasadodo
-
-🔗 GitHub: https://github.com/SiliasOdion809
+- GitHub: https://github.com/SiliasOdion809
+- LinkedIn: https://linkedin.com/in/siliasadodo
 
 ---
 
-## ⭐ Acknowledgements
+# ⭐ Project Status
 
-This project was developed as part of my Cloud Engineering Capstone to demonstrate modern DevOps practices, cloud-native architecture, Infrastructure as Code, and production-grade deployment on AWS.
+**Project Fortress Phase 2 – CI/CD Security & Platform Hardening** ✅
+
+The platform now demonstrates a production-oriented AWS DevOps environment with secure identity federation, explicit Kubernetes access control, centralized secrets management, infrastructure hardening, and automated deployments using GitHub Actions and Terraform.
