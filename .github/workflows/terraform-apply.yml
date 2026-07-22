@@ -115,7 +115,7 @@ jobs:
         run: terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/phase2-cicd-security'
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
         run: terraform apply -auto-approve tfplan
