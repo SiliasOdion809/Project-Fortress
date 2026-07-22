@@ -12,3 +12,8 @@ variable "tags" {
   description = "Common resource tags"
   type        = map(string)
 }
+
+variable "github_deployment_role_arn" {
+  description = "GitHub OIDC deployment role ARN"
+  type        = string
+}

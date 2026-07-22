@@ -7,7 +7,9 @@ module "kms" {
 
   project_name = var.project_name
   environment  = var.environment
-  tags         = local.common_tags
+  tags         = local.common_tags 
+
+  github_deployment_role_arn = module.iam.github_deployment_role_arn
 }
 
 module "ssm" {
@@ -45,6 +47,8 @@ module "eks" {
   private_subnet_ids         = module.networking.private_subnets
   dynamodb_policy_arn        = module.iam.dynamodb_policy_arn
   github_deployment_role_arn = module.iam.github_deployment_role_arn
+  cloud_admin_arn            = "arn:aws:iam::561876735341:user/Cloud-admin"
+
 }
 
 module "rds" {
@@ -130,4 +134,3 @@ module "ecr" {
     module.eks
   ]
 }*/
-

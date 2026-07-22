@@ -58,7 +58,7 @@ module "eks" {
     }
   
     cloud_admin = {
-      principal_arn = "arn:aws:iam::561876735341:user/Cloud-admin"
+      principal_arn = var.cloud_admin_arn
 
       policy_associations = {
         cluster_admin = {
