@@ -48,6 +48,14 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: Debug ALB Controller
+        if: always()
+        run: |
+          kubectl get pods -n kube-system
+          kubectl describe deployment aws-load-balancer-controller -n kube-system
+          kubectl describe pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+          kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller --all-containers=true
+
 
       - name: Add EKS Helm Repository
         run: |
