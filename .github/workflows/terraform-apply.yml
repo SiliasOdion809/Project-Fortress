@@ -8,7 +8,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read      
+  contents: read
 
 jobs:
   terraform-apply:
@@ -24,7 +24,6 @@ jobs:
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
-
         with:
           role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
@@ -33,76 +32,8 @@ jobs:
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
-      - name: Verify EKS Access
-        run: |
-          aws eks describe-cluster \
-            --name project-bedrock-cluster \
-            --region us-east-1
-
-      - name: Configure kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --name project-bedrock-cluster \
-            --region us-east-1 
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Debug ALB Controller
-        if: always()
-        run: |
-          kubectl get pods -n kube-system
-          kubectl describe deployment aws-load-balancer-controller -n kube-system
-          kubectl describe pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
-          kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller --all-containers=true
-
-
-      - name: Add EKS Helm Repository
-        run: |
-          helm repo add eks https://aws.github.io/eks-charts
-          helm repo update
-
-      - name: Deploy AWS Load Balancer Controller
-        run: |
-          helm upgrade --install aws-load-balancer-controller \
-            eks/aws-load-balancer-controller \
-            --namespace kube-system \
-            --create-namespace \
-            --set clusterName=project-bedrock-cluster \
-            --set region=us-east-1 \
-            --set serviceAccount.create=false \
-            --set serviceAccount.name=aws-load-balancer-controller 
-
-      - name: Verify ALB Controller
-        run: |
-          kubectl get pods -n kube-system
-          kubectl get deployment aws-load-balancer-controller -n kube-system
-
-      - name: Export KUBECONFIG
-        run: |
-          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
-          export KUBECONFIG=$HOME/.kube/config
-
-          echo "Current kubeconfig:"
-          kubectl config current-context
-
-          ls -la ~/.kube
-
-      - name: Verify Kubernetes Access
-        env:
-          KUBECONFIG: ${{ env.KUBECONFIG }}
-        run: |
-          kubectl config current-context
-          kubectl get nodes
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
-      - name: Debug AWS Identity
-        continue-on-error: true
-        run: |
-          aws sts get-caller-identity
-          aws eks get-token --cluster-name project-bedrock-cluster
 
       - name: Terraform Init
         run: terraform init
@@ -111,12 +42,35 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        env:
-          KUBECONFIG: ${{ env.KUBECONFIG }}
         run: terraform plan -out=tfplan -no-color
 
+      # Cluster, access_entries, and the aws_load_balancer_controller
+      # helm_release are all created here. Nothing kubectl/helm-related
+      # should run before this step completes.
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/phase2-cicd-security'
-        env:
-          KUBECONFIG: ${{ env.KUBECONFIG }}
         run: terraform apply -auto-approve tfplan
+
+      # Safe from here on — cluster + access entry are guaranteed to exist
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name project-bedrock-cluster \
+            --region us-east-1
+
+      - name: Verify Kubernetes Access
+        run: |
+          kubectl config current-context
+          kubectl get nodes
+
+      - name: Verify ALB Controller
+        run: |
+          kubectl get pods -n kube-system
+          kubectl get deployment aws-load-balancer-controller -n kube-system
+
+      - name: Debug ALB Controller
+        if: always()
+        run: |
+          kubectl describe deployment aws-load-balancer-controller -n kube-system
+          kubectl describe pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+          kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller --all-containers=true
