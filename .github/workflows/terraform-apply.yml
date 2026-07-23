@@ -81,7 +81,7 @@ jobs:
           --set region=us-east-1 \
           --set serviceAccount.create=true \
           --set serviceAccount.name=aws-load-balancer-controller \
-          --set serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::561876735341:role/alb-controller-irsa-role \
+          --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn=arn:aws:iam::561876735341:role/alb-controller-irsa-role" \
           --wait \
           --timeout 10m 
          
