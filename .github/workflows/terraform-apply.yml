@@ -44,8 +44,8 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan -no-color
 
-      # Cluster, access_entries, and the aws_load_balancer_controller
-      # helm_release are all created here. Nothing kubectl/helm-related
+      # Terraform provisions the AWS infrastructure (VPC, IAM, EKS, IRSA, etc.).
+      # Kubernetes applications are installed after Terraform completes.
       # should run before this step completes.
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/phase2-cicd-security'
@@ -63,14 +63,36 @@ jobs:
           kubectl config current-context
           kubectl get nodes
 
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add EKS Helm Repository
+        run: |
+          helm repo add eks https://aws.github.io/eks-charts
+          helm repo update
+
+      - name: Deploy AWS Load Balancer Controller
+        run: |
+          helm upgrade --install aws-load-balancer-controller \
+            eks/aws-load-balancer-controller \
+            --namespace kube-system \
+            --create-namespace \
+            --set clusterName=project-bedrock-cluster \
+            --set region=us-east-1 \
+            --set serviceAccount.create=false \
+            --set serviceAccount.name=aws-load-balancer-controller \
+            --wait \
+            --timeout 10m
+
       - name: Verify ALB Controller
         run: |
-          kubectl get pods -n kube-system
+          kubectl rollout status deployment/aws-load-balancer-controller -n kube-system
           kubectl get deployment aws-load-balancer-controller -n kube-system
+          kubectl get pods -n kube-system
 
       - name: Debug ALB Controller
-        if: always()
+        if: failure()
         run: |
-          kubectl describe deployment aws-load-balancer-controller -n kube-system
-          kubectl describe pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
-          kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller --all-containers=true
+          kubectl describe deployment aws-load-balancer-controller -n kube-system || true
+          kubectl describe pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller || true
+          kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller --all-containers=true || true
