@@ -460,6 +460,8 @@ jobs:
               echo "**Application URL:** http://${ALB_DNS}" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "Deployment completed successfully." >> $GITHUB_STEP_SUMMARY
+             
+              echo "alb_dns=$ALB_DNS" >> "$GITHUB_OUTPUT"
 
               exit 0
             fi
