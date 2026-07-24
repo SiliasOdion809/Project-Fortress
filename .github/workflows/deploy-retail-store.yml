@@ -1,3 +1,7 @@
+concurrency:
+  group: deploy-retail-store
+  cancel-in-progress: true
+
 name: Deploy Retail Store
 
 on:
@@ -5,10 +9,24 @@ on:
     workflows: ["Terraform Apply"]
     types:
       - completed
+         
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  CLUSTER_NAME: project-bedrock-cluster
+  NAMESPACE: retail-app
 
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  prepare-environment:
+    timeout-minutes: 15
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     runs-on: ubuntu-latest
 
@@ -21,89 +39,180 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Debug Repository Structure
-        run: |
-          echo "Current directory:"
-          pwd
-
-          echo ""
-          echo "Repository root contents:"
-          ls -la
-
-          echo ""
-          echo "Searching for retail-store-sample-app:"
-          find . -type d | grep retail-store    
-
-      - name: Configure AWS Credentials
+      - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DeployRetailStore
+      
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: configure kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.CLUSTER_NAME }}
+
+      - name: Verify Cluster Connectivity
+        run: |
+          kubectl cluster-info
+
+          NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
+
+          if [ "$NODE_COUNT" -eq 0 ]; then
+            echo "❌ No Kubernetes worker nodes found."
+            exit 1
+          fi
+
+          echo "✅ Kubernetes cluster is healthy."
+          kubectl get nodes -o wide
+
+      - name: Display Cluster Info
+        run: |
+          kubectl cluster-info
+          kubectl get nodes -o wide
+          kubectl get namespaces
+          kubectl get pods --all-namespaces
+
+
+  validate-infrastructure:
+    timeout-minutes: 15
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    needs: prepare-environment
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      mysql_endpoint: ${{ steps.terraform_outputs.outputs.mysql_endpoint }}
+      postgres_endpoint: ${{ steps.terraform_outputs.outputs.postgres_endpoint }}
+      dynamodb_table: ${{ steps.terraform_outputs.outputs.dynamodb_table }}
+      mysql_username: ${{ steps.terraform_outputs.outputs.mysql_username }}
+      mysql_password: ${{ steps.terraform_outputs.outputs.mysql_password }}
+      postgres_username: ${{ steps.terraform_outputs.outputs.postgres_username }}
+      postgres_password: ${{ steps.terraform_outputs.outputs.postgres_password }}
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DeployRetailStore
+
+      - name: Configure Kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.CLUSTER_NAME }}
+
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Configure kubectl
-        run: |
-          aws eks update-kubeconfig \
-          --region us-east-1 \
-          --name project-bedrock-cluster
-
-      - name: Get Terraform Outputs
+      - name: Read Terraform Outputs
+        id: terraform_outputs
         working-directory: terraform
-
+        
         run: |
-          terraform init
+          terraform init -input=false
 
-          echo "MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint)" >> $GITHUB_ENV
+          echo "mysql_endpoint=$(terraform output -raw mysql_endpoint)" >> $GITHUB_OUTPUT
 
-          echo "POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint)" >> $GITHUB_ENV
+          echo "postgres_endpoint=$(terraform output -raw postgres_endpoint)" >> $GITHUB_OUTPUT
 
-          echo "DYNAMODB_TABLE=$(terraform output -raw dynamodb_table_name)" >> $GITHUB_ENV
+          echo "dynamodb_table=$(terraform output -raw dynamodb_table_name)" >> $GITHUB_OUTPUT
 
-          echo "MYSQL_USERNAME=$(terraform output -raw mysql_username)" >> $GITHUB_ENV
-          echo "MYSQL_PASSWORD=$(terraform output -raw mysql_password)" >> $GITHUB_ENV
+          echo "mysql_username=$(terraform output -raw mysql_username)" >> $GITHUB_OUTPUT
+          echo "mysql_password=$(terraform output -raw mysql_password)" >> $GITHUB_OUTPUT
 
-          echo "POSTGRES_USERNAME=$(terraform output -raw postgres_username)" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=$(terraform output -raw postgres_password)" >> $GITHUB_ENV
+          echo "postgres_username=$(terraform output -raw postgres_username)" >> $GITHUB_OUTPUT
+          echo "postgres_password=$(terraform output -raw postgres_password)" >> $GITHUB_OUTPUT
 
       - name: Verify Terraform Outputs
         run: |
-          echo "MYSQL_ENDPOINT=$MYSQL_ENDPOINT"
-          echo "POSTGRES_ENDPOINT=$POSTGRES_ENDPOINT"
-          echo "MYSQL_USERNAME=$MYSQL_USERNAME"
-          echo "POSTGRES_USERNAME=$POSTGRES_USERNAME"
+          echo "MySQL Endpoint: ${{ steps.terraform_outputs.outputs.mysql_endpoint }}"
+          echo "Postgres Endpoint: ${{ steps.terraform_outputs.outputs.postgres_endpoint }}"
+          echo "MySQL Username: ${{ steps.terraform_outputs.outputs.mysql_username }}"
+          echo "Postgres Username: ${{ steps.terraform_outputs.outputs.postgres_username }}"
 
-      - name: Verify Cluster
+      - name: Ensure Application Namespace Exists
         run: |
-          kubectl get nodes
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get ns ${{ env.NAMESPACE }}
 
-      - name: Create Namespace
+  initialize-databases:
+    timeout-minutes: 20
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    needs: validate-infrastructure
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .      
+
+    env:
+      MYSQL_ENDPOINT: ${{ needs.validate-infrastructure.outputs.mysql_endpoint }}
+      POSTGRES_ENDPOINT: ${{ needs.validate-infrastructure.outputs.postgres_endpoint }}
+      DYNAMODB_TABLE: ${{ needs.validate-infrastructure.outputs.dynamodb_table }}
+
+      MYSQL_USERNAME: ${{ needs.validate-infrastructure.outputs.mysql_username }}
+      MYSQL_PASSWORD: ${{ needs.validate-infrastructure.outputs.mysql_password }}
+
+      POSTGRES_USERNAME: ${{ needs.validate-infrastructure.outputs.postgres_username }}
+      POSTGRES_PASSWORD: ${{ needs.validate-infrastructure.outputs.postgres_password }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DeployRetailStore
+        
+      - name: Configure Kubeconfig
         run: |
-          kubectl create namespace retail-app \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-          kubectl get ns retail-app   
+          aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.CLUSTER_NAME }}  
 
       - name: Initialize Catalog Database
         run: |
+          kubectl delete pod mysql-init \
+          -n ${{ env.NAMESPACE }} \
+          --ignore-not-found=true
 
-          kubectl delete pod mysql-init -n retail-app --ignore-not-found=true
-
-          kubectl wait \
-            --for=delete pod/mysql-init \
-            -n retail-app \
-            --timeout=60s || true
-
-          kubectl run mysql-init -n retail-app \
+          kubectl wait --for=condition=Ready \
+          --for=delete pod/mysql-init \
+          -n ${{ env.NAMESPACE }} \
+          --timeout=120s
+          
+          kubectl run mysql-init -n ${{ env.NAMESPACE }} \
             --image=mysql:8 \
             --restart=Never \
             --env="MYSQL_PWD=${MYSQL_PASSWORD}" \
             --env="MYSQL_ENDPOINT=${MYSQL_ENDPOINT}" \
             --env="MYSQL_USERNAME=${MYSQL_USERNAME}" \
             --command -- \
-            sh -c '
+            bash -c '
               HOST=$(echo "$MYSQL_ENDPOINT" | cut -d":" -f1)
               PORT=$(echo "$MYSQL_ENDPOINT" | cut -d":" -f2)
 
@@ -114,154 +223,115 @@ jobs:
                 -e "CREATE DATABASE IF NOT EXISTS catalog;"
             '
 
-          for i in {1..60}; do
-            STATUS=$(kubectl get pod mysql-init -n retail-app \
-              -o jsonpath='{.status.phase}' 2>/dev/null)
+          kubectl logs mysql-init -n ${{ env.NAMESPACE }}
 
-            echo "Pod Status: $STATUS"
-
-            if [ "$STATUS" = "Succeeded" ]; then
-              echo "Catalog database initialized successfully"
-              exit 0
-            fi
-
-            if [ "$STATUS" = "Failed" ]; then
-              kubectl logs mysql-init -n retail-app
-              exit 1
-            fi
-
-            sleep 5
-          done
-
-          echo "Timed out waiting for mysql-init pod"
-          exit 1
-            kubectl logs mysql-init -n retail-app || true
-
-            kubectl describe pod mysql-init -n retail-app || true
-
-            STATUS=$(kubectl get pod mysql-init -n retail-app -o jsonpath='{.status.phase}')
-
-            echo "Pod Status: $STATUS"
-
-            if [ "$STATUS" != "Succeeded" ]; then
-              echo "Catalog database initialization failed"
-
-              echo "=== MYSQL INIT LOGS ==="
-              kubectl logs mysql-init -n retail-app || true
-
-              echo "=== MYSQL INIT DESCRIPTION ==="
-              kubectl describe pod mysql-init -n retail-app || true
-
-              exit 1
-            fi
+          
 
       - name: Initialize Orders Database
         run: |
+            kubectl delete pod postgres-init \
+            -n ${{ env.NAMESPACE }} \
+            --ignore-not-found=true
 
-          kubectl delete pod postgres-init -n retail-app --ignore-not-found=true
-
-          kubectl wait \
+            kubectl wait --for=condition=Ready \
             --for=delete pod/postgres-init \
-            -n retail-app \
-            --timeout=60s || true
+            -n ${{ env.NAMESPACE }} \
+            --timeout=120s
 
-          kubectl run postgres-init -n retail-app \
-            --image=postgres:15 \
-            --restart=Never \
-            --env="PGPASSWORD=${POSTGRES_PASSWORD}" \
-            --env="POSTGRES_USERNAME=${POSTGRES_USERNAME}" \
-            --env="POSTGRES_ENDPOINT=${POSTGRES_ENDPOINT}" \
-                      --command -- \
-            bash -c '
-            HOST=$(echo "$POSTGRES_ENDPOINT" | cut -d":" -f1)
-            PORT=$(echo "$POSTGRES_ENDPOINT" | cut -d":" -f2)
+            kubectl run postgres-init -n ${{ env.NAMESPACE }} \
+              --image=postgres:15 \
+              --restart=Never \
+              --env="PGPASSWORD=${POSTGRES_PASSWORD}" \
+              --env="POSTGRES_USERNAME=${POSTGRES_USERNAME}" \
+              --env="POSTGRES_ENDPOINT=${POSTGRES_ENDPOINT}" \
+                        --command -- \
+              bash -c '
+                HOST=$(echo "$POSTGRES_ENDPOINT" | cut -d":" -f1)
+                PORT=$(echo "$POSTGRES_ENDPOINT" | cut -d":" -f2)
 
-            EXISTS=$(psql \
-              -h "$HOST" \
-              -p "$PORT" \
-              -U "$POSTGRES_USERNAME" \
-              -d postgres \
-              -tAc "SELECT 1 FROM pg_database WHERE datname='\''orders'\''")
+                EXISTS=$(psql \
+                  -h "$HOST" \
+                  -p "$PORT" \
+                  -U "$POSTGRES_USERNAME" \
+                  -d postgres \
+                  -tAc "SELECT 1 FROM pg_database WHERE datname='\''orders'\''")
 
-            if [ "$EXISTS" != "1" ]; then
-              echo "Creating orders database..."
-              psql \
-                -h "$HOST" \
-                -p "$PORT" \
-                -U "$POSTGRES_USERNAME" \
-                -d postgres \
-                -c "CREATE DATABASE orders;"
+                if [ "$EXISTS" != "1" ]; then
+                  echo "Creating orders database..."
+                  psql \
+                    -h "$HOST" \
+                    -p "$PORT" \
+                    -U "$POSTGRES_USERNAME" \
+                    -d postgres \
+                    -c "CREATE DATABASE orders;"
 
-            else
-              echo "orders database already exists"
-            fi
-            '
+                else
+                  echo "orders database already exists"
+                fi
+              '
 
-          for i in {1..60}; do
-            STATUS=$(kubectl get pod postgres-init -n retail-app \
-              -o jsonpath='{.status.phase}' 2>/dev/null)
+            kubectl logs postgres-init -n ${{ env.NAMESPACE }}              
 
-            echo "Status: $STATUS"
+  deploy-application:
+    timeout-minutes: 30
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
-            if [ "$STATUS" = "Succeeded" ]; then
-                break
-            fi
+    needs: 
+      - initialize-databases
+      - validate-infrastructure
 
-            if [ "$STATUS" = "Failed" ]; then
-                kubectl logs postgres-init -n retail-app
-                exit 1
-            fi
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
 
-            sleep 5
-          done
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DeployRetailStore
 
-          kubectl logs postgres-init -n retail-app || true
-
-          STATUS=$(kubectl get pod postgres-init -n retail-app -o jsonpath='{.status.phase}')
-
-          if [ "$STATUS" != "Succeeded" ]; then
-            echo "Orders database initialization failed"
-            exit 1
-          fi
+      - name: Configure Kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.CLUSTER_NAME }}  
 
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
           version: v3.15.4
 
-      - name: Check Helm Version
-        run: |
-          helm version
-
-      - name: Check Helm Plugins Before Install
-        run: |
-          helm version
-          helm plugin list
-
       - name: Install Helm Diff Plugin
         run: |
-          helm plugin install https://github.com/databus23/helm-diff --version v3.9.12
-
-      - name: Verify Helm Plugin
-        run: |
-          helm plugin list
+          if ! helm plugin list | grep -q diff; then
+            helm plugin install https://github.com/databus23/helm-diff
+          fi
 
       - name: Install Helmfile
         run: |
           HELMFILE_VERSION=v0.170.1
 
           curl -Lo helmfile.tar.gz \
-          https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION#v}_linux_amd64.tar.gz
-
+            https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz
+            
           tar -xzf helmfile.tar.gz
 
-          chmod +x helmfile
+          ls -la
 
+          chmod +x helmfile
           sudo mv helmfile /usr/local/bin/
 
           helmfile --version
 
-      - name: Verify Retail Store Files
+      - name: Verify Retail-store Files
         run: |
           pwd
           echo "Checking Retail Store directory..."
@@ -274,71 +344,107 @@ jobs:
         run: |
           helmfile --version
           test -f helmfile.yaml
-          echo "helmfile.yaml found"
+          echo "helmfile.yaml found"  
 
       - name: Deploy Retail Store
         working-directory: retail-store-sample-app/src/app
         env:
-          MYSQL_ENDPOINT: ${{ env.MYSQL_ENDPOINT }}
-          POSTGRES_ENDPOINT: ${{ env.POSTGRES_ENDPOINT }}
-          DYNAMODB_TABLE: ${{ env.DYNAMODB_TABLE }}
+          MYSQL_ENDPOINT: ${{ needs.validate-infrastructure.outputs.mysql_endpoint }}
+          POSTGRES_ENDPOINT: ${{ needs.validate-infrastructure.outputs.postgres_endpoint }}
+          DYNAMODB_TABLE: ${{ needs.validate-infrastructure.outputs.dynamodb_table }}
+
+          MYSQL_USERNAME: ${{ needs.validate-infrastructure.outputs.mysql_username }}
+          MYSQL_PASSWORD: ${{ needs.validate-infrastructure.outputs.mysql_password }}
+
+          POSTGRES_USERNAME: ${{ needs.validate-infrastructure.outputs.postgres_username }}
+          POSTGRES_PASSWORD: ${{ needs.validate-infrastructure.outputs.postgres_password }}
+
           INGRESS: "true"
-          MYSQL_USERNAME: ${{ env.MYSQL_USERNAME }}
-          MYSQL_PASSWORD: ${{ env.MYSQL_PASSWORD }}
-          POSTGRES_USERNAME: ${{ env.POSTGRES_USERNAME }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+
         run: |
           helmfile --log-level debug apply
 
+  verify-deployment:
+    timeout-minutes: 20
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    needs: deploy-application
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      alb_dns: ${{ steps.alb.outputs.alb_dns }}
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DeployRetailStore
+      
+      - name: Configure Kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.CLUSTER_NAME }}
+
       - name: Wait For Deployments
         run: |
-          kubectl rollout status deployment/catalog -n retail-app --timeout=10m || true
-          kubectl rollout status deployment/carts -n retail-app --timeout=10m || true
-          kubectl rollout status deployment/orders -n retail-app --timeout=10m || true
-          kubectl rollout status deployment/checkout -n retail-app --timeout=10m || true
-          kubectl rollout status deployment/ui -n retail-app --timeout=10m || true
+          kubectl rollout status deployment/catalog -n ${{ env.NAMESPACE }} --timeout=10m 
+          kubectl rollout status deployment/carts -n ${{ env.NAMESPACE }} --timeout=10m 
+          kubectl rollout status deployment/orders -n ${{ env.NAMESPACE }} --timeout=10m 
+          kubectl rollout status deployment/checkout -n ${{ env.NAMESPACE }} --timeout=10m 
+          kubectl rollout status deployment/ui -n ${{ env.NAMESPACE }} --timeout=10m 
 
       - name: Show Pod Details
         run: |
-          kubectl get pods -o wide -n retail-app
-          kubectl get deployments -n retail-app
-          kubectl get svc -n retail-app
-          kubectl get ingress -n retail-app
+          kubectl get pods -o wide -n ${{ env.NAMESPACE }}
+          kubectl get deployments -n ${{ env.NAMESPACE }}   
 
       - name: Investigate Deployment State
         run: |
           echo "=== Namespaces ==="
-          kubectl get ns -n retail-app
+          kubectl get ns ${{ env.NAMESPACE }}
 
           echo "=== Deployments ==="
-          kubectl get deployments -n retail-app
+          kubectl get deployments -n ${{ env.NAMESPACE }}
 
           echo "=== Pods ==="
-          kubectl get pods -n retail-app
+          kubectl get pods -n ${{ env.NAMESPACE }}
 
           echo "=== Services ==="
-          kubectl get svc -n retail-app
+          kubectl get svc -n ${{ env.NAMESPACE }}
 
           echo "=== Ingresses ==="
-          kubectl get ingress -n retail-app
+          kubectl get ingress -n ${{ env.NAMESPACE }}
 
           echo "=== Events ==="
-          kubectl get events -n retail-app --sort-by=.lastTimestamp | tail -50
+          kubectl get events -n ${{ env.NAMESPACE }} --sort-by=.lastTimestamp | tail -50
 
       - name: Verify Ingress
         run: |
-          kubectl get ingress ui -n retail-app
-          kubectl describe ingress ui -n retail-app
-
+          kubectl get ingress ui -n ${{ env.NAMESPACE }}
+          kubectl describe ingress ui -n ${{ env.NAMESPACE }} 
+        
       - name: Get ALB DNS
         run: |
           echo "Waiting for ALB provisioning..."
 
           for i in {1..30}; do
 
-            kubectl get ingress -n retail-app
+            kubectl get ingress -n ${{ env.NAMESPACE }}
 
-            ALB_DNS=$(kubectl get ingress ui -n retail-app \
+            ALB_DNS=$(kubectl get ingress ui -n ${{ env.NAMESPACE }} \
               -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
 
             if [ -n "$ALB_DNS" ]; then
@@ -364,29 +470,58 @@ jobs:
           echo "ERROR: ALB hostname was not assigned"
           kubectl describe ingress ui
           exit 1
-          
-      - name: Smoke Test Application
-        run: |
-          ALB_DNS=$(kubectl get ingress ui -n retail-app \
-            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-          echo "Testing application..."
+  smoke-tests: 
+      timeout-minutes: 10
+      if: >
+        github.event_name == 'workflow_dispatch' ||
+        github.event.workflow_run.conclusion == 'success'
+      
+      needs: verify-deployment
 
-          echo "Waiting for ALB DNS propagation..."
+      runs-on: ubuntu-latest
 
-          for i in {1..30}; do
+      env:
+        ALB_DNS: ${{ needs.verify-deployment.outputs.alb_dns }}
 
-            if nslookup ${ALB_DNS} >/dev/null 2>&1; then
-              echo "DNS resolved"
-              break
-            fi
+      defaults:
+        run:
+          working-directory: .
 
-            echo "Waiting..."
-            sleep 20
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
-          done
+        - name: Configure AWS Credentials (OIDC)
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: ${{ secrets.AWS_GITHUB_ROLE_ARN }}
+            aws-region: ${{ env.AWS_REGION }}
+            role-session-name: GitHubActions-DeployRetailStore
 
-          curl -I http://${ALB_DNS}
-          curl -s http://${ALB_DNS} | head -20
+        - name: Configure Kubeconfig
+          run: |
+            aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.CLUSTER_NAME }}
+        
+        - name: Smoke Test Application
+          run: |
+            echo "Testing application at http://${ALB_DNS}"
 
-          curl -s http://${ALB_DNS} | head -20
+            for i in {1..10}; do
+              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${ALB_DNS}")
+
+              if [ "$HTTP_STATUS" -eq 200 ]; then
+                echo "Application is healthy."
+                exit 0
+              fi
+
+              echo "Waiting for application..."
+              sleep 15
+            done
+
+            echo "Application never became healthy."
+            exit 1
+
+            echo "✅ Application is reachable. HTTP status code: $HTTP_STATUS"
