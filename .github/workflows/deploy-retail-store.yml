@@ -437,6 +437,7 @@ jobs:
           kubectl describe ingress ui -n ${{ env.NAMESPACE }} 
         
       - name: Get ALB DNS
+        id: alb
         run: |
           echo "Waiting for ALB provisioning..."
 
@@ -514,6 +515,9 @@ jobs:
 
               if [ "$HTTP_STATUS" -eq 200 ]; then
                 echo "Application is healthy."
+
+                echo "alb_dns=$ALB_DNS" >> "$GITHUB_OUTPUT"
+
                 exit 0
               fi
 
@@ -523,5 +527,3 @@ jobs:
 
             echo "Application never became healthy."
             exit 1
-
-            echo "✅ Application is reachable. HTTP status code: $HTTP_STATUS"
