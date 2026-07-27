@@ -200,10 +200,10 @@ jobs:
           -n ${{ env.NAMESPACE }} \
           --ignore-not-found=true
 
-          kubectl wait --for=condition=Ready \
+          kubectl wait \
           --for=delete pod/mysql-init \
           -n ${{ env.NAMESPACE }} \
-          --timeout=120s
+          --timeout=120s || true
           
           kubectl run mysql-init -n ${{ env.NAMESPACE }} \
             --image=mysql:8 \
@@ -222,21 +222,28 @@ jobs:
                 -u "$MYSQL_USERNAME" \
                 -e "CREATE DATABASE IF NOT EXISTS catalog;"
             '
-
-            echo "Waiting for mysql-init pod..."
-
-            kubectl run ...
-
-            echo "Waiting for mysql-init pod..."
-
-            kubectl wait \
-              --for=condition=Ready \
+        
+            echo "Waiting for mysql-init pod to finish..."
+            if ! kubectl wait \
+              --for=jsonpath='{.status.phase}'=Succeeded \
               pod/mysql-init \
               -n ${{ env.NAMESPACE }} \
-              --timeout=180s
+              --timeout=180s; then
 
-            kubectl logs \
-              mysql-init \
+              kubectl get pod mysql-init -n ${{ env.NAMESPACE }}
+              kubectl describe pod mysql-init -n ${{ env.NAMESPACE }}
+              kubectl logs mysql-init -n ${{ env.NAMESPACE }}
+
+              exit 1
+            fi
+
+            kubectl get pod mysql-init \
+              -n ${{ env.NAMESPACE }}
+
+            kubectl describe pod mysql-init \
+              -n ${{ env.NAMESPACE }}
+
+            kubectl logs mysql-init \
               -n ${{ env.NAMESPACE }}
 
       - name: Initialize Orders Database
@@ -245,10 +252,10 @@ jobs:
             -n ${{ env.NAMESPACE }} \
             --ignore-not-found=true
 
-            kubectl wait --for=condition=Ready \
+            kubectl wait \
             --for=delete pod/postgres-init \
             -n ${{ env.NAMESPACE }} \
-            --timeout=120s
+            --timeout=120s || true
 
             kubectl run postgres-init -n ${{ env.NAMESPACE }} \
               --image=postgres:15 \
@@ -284,17 +291,27 @@ jobs:
 
             echo "Waiting for postgres-init pod to complete..."
 
-            kubectl wait \
+            if ! kubectl wait \
               --for=jsonpath='{.status.phase}'=Succeeded \
-              pod/postgres-init \
+              pod/mysql-init \
               -n ${{ env.NAMESPACE }} \
-              --timeout=180s || true
+              --timeout=180s; then
 
-            kubectl logs postgres-init \
-              -n ${{ env.NAMESPACE }}
+              kubectl get pod mysql-init -n ${{ env.NAMESPACE }}
+              kubectl describe pod mysql-init -n ${{ env.NAMESPACE }}
+              kubectl logs mysql-init -n ${{ env.NAMESPACE }}
+
+              exit 1
+            fi
 
             kubectl get pod postgres-init \
-              -n ${{ env.NAMESPACE }}         
+              -n ${{ env.NAMESPACE }}
+
+            kubectl describe pod postgres-init \
+              -n ${{ env.NAMESPACE }}
+
+            kubectl logs postgres-init \
+              -n ${{ env.NAMESPACE }}    
 
   deploy-application:
     timeout-minutes: 30
