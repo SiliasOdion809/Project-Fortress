@@ -223,9 +223,25 @@ jobs:
                 -e "CREATE DATABASE IF NOT EXISTS catalog;"
             '
 
-          kubectl logs mysql-init -n ${{ env.NAMESPACE }}
+            echo "Waiting for mysql-init pod..."
 
-          
+            if ! kubectl wait \
+              --for=condition=Ready \
+              pod/mysql-init \
+              -n ${{ env.NAMESPACE }} \
+              --timeout=180s; then
+
+              echo "Pod failed to become Ready."
+
+              kubectl describe pod mysql-init -n ${{ env.NAMESPACE }}
+
+              kubectl logs mysql-init -n ${{ env.NAMESPACE }} || true
+
+              exit 1
+            fi
+
+            kubectl logs mysql-init -n ${{ env.NAMESPACE }}
+
 
       - name: Initialize Orders Database
         run: |
