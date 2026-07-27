@@ -290,7 +290,7 @@ jobs:
 
             if ! kubectl wait \
               --for=condition=Ready \
-              pod/mysql-init \
+              pod/postgres-init \
               -n ${{ env.NAMESPACE }} \
               --timeout=180s; then
 
