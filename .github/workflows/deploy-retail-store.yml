@@ -286,7 +286,24 @@ jobs:
                 fi
               '
 
-            kubectl logs postgres-init -n ${{ env.NAMESPACE }}              
+             echo "Waiting for postgres-init pod..."
+
+            if ! kubectl wait \
+              --for=condition=Ready \
+              pod/mysql-init \
+              -n ${{ env.NAMESPACE }} \
+              --timeout=180s; then
+
+              echo "Pod failed to become Ready."
+
+              kubectl describe pod postgres-init -n ${{ env.NAMESPACE }}
+
+              kubectl logs postgres-init -n ${{ env.NAMESPACE }} || true
+
+              exit 1
+            fi
+
+            kubectl logs postgres-init -n ${{ env.NAMESPACE }}             
 
   deploy-application:
     timeout-minutes: 30
