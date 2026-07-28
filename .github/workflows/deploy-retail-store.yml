@@ -5,10 +5,9 @@ concurrency:
 name: Deploy Retail Store
 
 on:
-  workflow_run:
-    workflows: ["Terraform Apply"]
-    types:
-      - completed
+  push:
+    branches:
+      - feature/phase2-cicd-security
          
   workflow_dispatch:
 
