@@ -59,7 +59,7 @@ output "mysql_username" {
 }
 
 output "mysql_password" {
-  value     = var.mysql_password
+  value     = module.secrets_manager.mysql_password
   sensitive = true
 }
 
@@ -68,11 +68,21 @@ output "postgres_username" {
 }
 
 output "postgres_password" {
-  value     = var.postgres_password
+  value     = module.secrets_manager.postgres_password
   sensitive = true
 }
 
 output "github_deployment_role_arn" {
   description = "ARN of the GitHub Deployment Role"
   value       = module.iam.github_deployment_role_arn
+}
+
+output "mysql_secret_arn" {
+  description = "ARN of the MySQL Secret"
+  value       = module.secrets_manager.mysql_secret_arn
+}
+
+output "postgres_secret_arn" {
+  description = "ARN of the PostgreSQL Secret"
+  value       = module.secrets_manager.postgres_secret_arn
 }

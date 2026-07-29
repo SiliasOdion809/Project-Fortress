@@ -91,10 +91,14 @@ jobs:
       mysql_endpoint: ${{ steps.terraform_outputs.outputs.mysql_endpoint }}
       postgres_endpoint: ${{ steps.terraform_outputs.outputs.postgres_endpoint }}
       dynamodb_table: ${{ steps.terraform_outputs.outputs.dynamodb_table }}
+
       mysql_username: ${{ steps.terraform_outputs.outputs.mysql_username }}
       mysql_password: ${{ steps.terraform_outputs.outputs.mysql_password }}
+      mysql_secret_arn: ${{ steps.terraform_outputs.outputs.mysql_secret_arn }}
+
       postgres_username: ${{ steps.terraform_outputs.outputs.postgres_username }}
       postgres_password: ${{ steps.terraform_outputs.outputs.postgres_password }}
+      postgres_secret_arn: ${{ steps.terraform_outputs.outputs.postgres_secret_arn }}
 
     defaults:
       run:
@@ -136,16 +140,17 @@ jobs:
 
           echo "mysql_username=$(terraform output -raw mysql_username)" >> $GITHUB_OUTPUT
           echo "mysql_password=$(terraform output -raw mysql_password)" >> $GITHUB_OUTPUT
+          echo "mysql_secret_arn=$(terraform output -raw mysql_secret_arn)" >> $GITHUB_OUTPUT
 
           echo "postgres_username=$(terraform output -raw postgres_username)" >> $GITHUB_OUTPUT
           echo "postgres_password=$(terraform output -raw postgres_password)" >> $GITHUB_OUTPUT
+          echo "postgres_secret_arn=$(terraform output -raw postgres_secret_arn)" >> $GITHUB_OUTPUT
 
       - name: Verify Terraform Outputs
         run: |
           echo "MySQL Endpoint: ${{ steps.terraform_outputs.outputs.mysql_endpoint }}"
           echo "Postgres Endpoint: ${{ steps.terraform_outputs.outputs.postgres_endpoint }}"
-          echo "MySQL Username: ${{ steps.terraform_outputs.outputs.mysql_username }}"
-          echo "Postgres Username: ${{ steps.terraform_outputs.outputs.postgres_username }}"
+          echo "DynamoDB Table: ${{ steps.terraform_outputs.outputs.dynamodb_table }}"
 
       - name: Ensure Application Namespace Exists
         run: |
@@ -173,9 +178,11 @@ jobs:
 
       MYSQL_USERNAME: ${{ needs.validate-infrastructure.outputs.mysql_username }}
       MYSQL_PASSWORD: ${{ needs.validate-infrastructure.outputs.mysql_password }}
+      MYSQL_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.mysql_secret_arn }}
 
       POSTGRES_USERNAME: ${{ needs.validate-infrastructure.outputs.postgres_username }}
       POSTGRES_PASSWORD: ${{ needs.validate-infrastructure.outputs.postgres_password }}
+      POSTGRES_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.postgres_secret_arn }}
 
     steps:
       - name: Checkout Repository
@@ -187,7 +194,61 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-DeployRetailStore
+
+      - name: Read Database Secrets
+        run: |
+          set -euo pipefail
+
+          echo "Reading MySQL secret..."
+
+          MYSQL_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id "$MYSQL_SECRET_ARN" \
+            --query SecretString \
+            --output text)
+
+          echo "MYSQL_USERNAME=$(echo "$MYSQL_SECRET" | jq -r '.username')" >> $GITHUB_ENV
+          echo "MYSQL_PASSWORD=$(echo "$MYSQL_SECRET" | jq -r '.password')" >> $GITHUB_ENV
+
+          echo "Reading PostgreSQL secret..."
+
+          POSTGRES_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id "$POSTGRES_SECRET_ARN" \
+            --query SecretString \
+            --output text)
+
+          echo "POSTGRES_USERNAME=$(echo "$POSTGRES_SECRET" | jq -r '.username')" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=$(echo "$POSTGRES_SECRET" | jq -r '.password')" >> $GITHUB_ENV
         
+      - name: Verify Secrets Retrieval
+        run: |
+          echo "Checking jq installation..."
+          jq --version
+
+          echo "Checking that environment variables were populated..."
+
+          if [ -z "$MYSQL_USERNAME" ]; then
+            echo "MYSQL_USERNAME is empty"
+            exit 1
+          fi
+
+          if [ -z "$MYSQL_PASSWORD" ]; then
+            echo "MYSQL_PASSWORD is empty"
+            exit 1
+          fi
+
+          if [ -z "$POSTGRES_USERNAME" ]; then
+            echo "POSTGRES_USERNAME is empty"
+            exit 1
+          fi
+
+          if [ -z "$POSTGRES_PASSWORD" ]; then
+            echo "POSTGRES_PASSWORD is empty"
+            exit 1
+          fi
+
+          echo "✅ Successfully retrieved both database secrets."
+
+
       - name: Configure Kubeconfig
         run: |
           aws eks update-kubeconfig \

@@ -7,7 +7,7 @@ module "kms" {
 
   project_name = var.project_name
   environment  = var.environment
-  tags         = local.common_tags 
+  tags         = local.common_tags
 
   github_deployment_role_arn = module.iam.github_deployment_role_arn
 }
