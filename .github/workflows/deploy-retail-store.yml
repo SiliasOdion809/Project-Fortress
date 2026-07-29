@@ -93,11 +93,11 @@ jobs:
       dynamodb_table: ${{ steps.terraform_outputs.outputs.dynamodb_table }}
 
       mysql_username: ${{ steps.terraform_outputs.outputs.mysql_username }}
-      mysql_password: ${{ steps.terraform_outputs.outputs.mysql_password }}
+
       mysql_secret_arn: ${{ steps.terraform_outputs.outputs.mysql_secret_arn }}
 
       postgres_username: ${{ steps.terraform_outputs.outputs.postgres_username }}
-      postgres_password: ${{ steps.terraform_outputs.outputs.postgres_password }}
+     
       postgres_secret_arn: ${{ steps.terraform_outputs.outputs.postgres_secret_arn }}
 
     defaults:
@@ -139,11 +139,11 @@ jobs:
           echo "dynamodb_table=$(terraform output -raw dynamodb_table_name)" >> $GITHUB_OUTPUT
 
           echo "mysql_username=$(terraform output -raw mysql_username)" >> $GITHUB_OUTPUT
-          echo "mysql_password=$(terraform output -raw mysql_password)" >> $GITHUB_OUTPUT
+
           echo "mysql_secret_arn=$(terraform output -raw mysql_secret_arn)" >> $GITHUB_OUTPUT
 
           echo "postgres_username=$(terraform output -raw postgres_username)" >> $GITHUB_OUTPUT
-          echo "postgres_password=$(terraform output -raw postgres_password)" >> $GITHUB_OUTPUT
+         
           echo "postgres_secret_arn=$(terraform output -raw postgres_secret_arn)" >> $GITHUB_OUTPUT
 
       - name: Verify Terraform Outputs
@@ -177,11 +177,11 @@ jobs:
       DYNAMODB_TABLE: ${{ needs.validate-infrastructure.outputs.dynamodb_table }}
 
       MYSQL_USERNAME: ${{ needs.validate-infrastructure.outputs.mysql_username }}
-      MYSQL_PASSWORD: ${{ needs.validate-infrastructure.outputs.mysql_password }}
+
       MYSQL_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.mysql_secret_arn }}
 
       POSTGRES_USERNAME: ${{ needs.validate-infrastructure.outputs.postgres_username }}
-      POSTGRES_PASSWORD: ${{ needs.validate-infrastructure.outputs.postgres_password }}
+
       POSTGRES_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.postgres_secret_arn }}
 
     steps:
