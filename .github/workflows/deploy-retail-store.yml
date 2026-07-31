@@ -428,17 +428,21 @@ jobs:
         run: |
           HELMFILE_VERSION=v0.170.1
 
-          curl -Lo helmfile.tar.gz \
-            https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz
-            
+          URL="https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz"
+
+          echo "Downloading:"
+          echo "$URL"
+
+          curl -L -o helmfile.tar.gz "$URL"
+
+          echo "Downloaded file information:"
+          file helmfile.tar.gz
+
+          echo "First 20 lines:"
+          head -20 helmfile.tar.gz || true
+
           tar -xzf helmfile.tar.gz
 
-          ls -la
-
-          chmod +x helmfile
-          sudo mv helmfile /usr/local/bin/
-
-          helmfile --version
 
       - name: Verify Retail-store Files
         run: |
