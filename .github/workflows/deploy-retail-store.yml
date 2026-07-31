@@ -411,11 +411,18 @@ jobs:
         with:
           version: v3.15.4
 
+      - name: Verify Helm Installation
+        run: |
+          helm version
+          helm env
+
       - name: Install Helm Diff Plugin
         run: |
-          if ! helm plugin list | grep -q diff; then
-            helm plugin install https://github.com/databus23/helm-diff
-          fi
+          helm plugin uninstall diff || true
+
+          helm plugin install https://github.com/databus23/helm-diff --version v3.9.12
+
+          helm plugin list
 
       - name: Install Helmfile
         run: |
