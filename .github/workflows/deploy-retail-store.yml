@@ -354,13 +354,13 @@ jobs:
 
             if ! kubectl wait \
               --for=jsonpath='{.status.phase}'=Succeeded \
-              pod/mysql-init \
+              pod/postgres-init \
               -n ${{ env.NAMESPACE }} \
               --timeout=180s; then
 
-              kubectl get pod mysql-init -n ${{ env.NAMESPACE }}
-              kubectl describe pod mysql-init -n ${{ env.NAMESPACE }}
-              kubectl logs mysql-init -n ${{ env.NAMESPACE }}
+              kubectl get pod postgres-init -n ${{ env.NAMESPACE }}
+              kubectl describe pod postgres-init -n ${{ env.NAMESPACE }}
+              kubectl logs postgres-init -n ${{ env.NAMESPACE }}
 
               exit 1
             fi
@@ -460,6 +460,38 @@ jobs:
           test -f helmfile.yaml
           echo "helmfile.yaml found"  
 
+      - name: Load Database Passwords from Secrets Manager
+        env:
+          MYSQL_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.mysql_secret_arn }}
+          POSTGRES_SECRET_ARN: ${{ needs.validate-infrastructure.outputs.postgres_secret_arn }}
+        run: |
+          set -euo pipefail
+          MYSQL_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id "$MYSQL_SECRET_ARN" \
+            --query SecretString \
+            --output text | jq -r '.password')
+
+          POSTGRES_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id "$POSTGRES_SECRET_ARN" \
+            --query SecretString \
+            --output text | jq -r '.password')
+
+          echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> "$GITHUB_ENV"
+          echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> "$GITHUB_ENV"
+
+          echo "✓ Database passwords loaded from AWS Secrets Manager"
+
+
+      - name: Verify Helm Environment
+        run: |
+          set -e
+
+          test -n "$MYSQL_PASSWORD"
+          test -n "$POSTGRES_PASSWORD"
+
+          echo "✓ Database passwords loaded successfully."
+
+
       - name: Deploy Retail Store
         working-directory: retail-store-sample-app/src/app
         env:
@@ -468,10 +500,9 @@ jobs:
           DYNAMODB_TABLE: ${{ needs.validate-infrastructure.outputs.dynamodb_table }}
 
           MYSQL_USERNAME: ${{ needs.validate-infrastructure.outputs.mysql_username }}
-          MYSQL_PASSWORD: ${{ needs.validate-infrastructure.outputs.mysql_password }}
 
           POSTGRES_USERNAME: ${{ needs.validate-infrastructure.outputs.postgres_username }}
-          POSTGRES_PASSWORD: ${{ needs.validate-infrastructure.outputs.postgres_password }}
+        
 
           INGRESS: "true"
 

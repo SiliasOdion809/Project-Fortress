@@ -19,8 +19,8 @@ kind: Secret
 metadata:
   name: catalog-db
 data:
-  RETAIL_CATALOG_PERSISTENCE_USER: "Y2F0YWxvZw=="
-  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "U3Ryb25nTXlzcWxQYXNzMTIzIQ=="
+  RETAIL_CATALOG_PERSISTENCE_USER: ""
+  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "WmlYVjZpdVhmcWZjcTdWMQ=="
 ---
 # Source: retail-store-sample-catalog-chart/templates/configmap.yml
 apiVersion: v1
@@ -29,7 +29,7 @@ metadata:
   name: catalog
 data:
   RETAIL_CATALOG_PERSISTENCE_PROVIDER: mysql
-  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: bedrock-mysql.cmvoi6gewsez.us-east-1.rds.amazonaws.com:3306
+  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: 
   RETAIL_CATALOG_PERSISTENCE_DB_NAME: catalog
   RETAIL_CATALOG_SEARCH_ENABLED: "false"
 
@@ -182,7 +182,7 @@ metadata:
   name: carts
 data:
   RETAIL_CART_PERSISTENCE_PROVIDER: dynamodb
-  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: bedrock-orders
+  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: 
   RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE: "false"
 
 ---
@@ -344,8 +344,8 @@ kind: Secret
 metadata:
   name: orders-db
 data:
-  RETAIL_ORDERS_PERSISTENCE_USERNAME: "b3JkZXJz"
-  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "U3Ryb25nUG9zdGdyZXNQYXNzMTIzIQ=="
+  RETAIL_ORDERS_PERSISTENCE_USERNAME: ""
+  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "c1A5c2ZrUzFYV0NwR2dkZA=="
 ---
 # Source: retail-store-sample-orders-chart/templates/configmap.yml
 apiVersion: v1
@@ -356,7 +356,7 @@ data:
   RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
   RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES: orders-rabbitmq:5672
   RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
-  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: bedrock-postgres.cmvoi6gewsez.us-east-1.rds.amazonaws.com:5432
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: 
   RETAIL_ORDERS_PERSISTENCE_NAME: orders
 
 ---
