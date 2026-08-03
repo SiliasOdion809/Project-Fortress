@@ -552,11 +552,13 @@ jobs:
           kubectl rollout status deployment/ui -n ${{ env.NAMESPACE }} --timeout=10m 
 
       - name: Show Pod Details
+        if: always()
         run: |
           kubectl get pods -o wide -n ${{ env.NAMESPACE }}
           kubectl get deployments -n ${{ env.NAMESPACE }}   
 
       - name: Investigate Deployment State
+        if: always()
         run: |
           echo "=== Namespaces ==="
           kubectl get ns ${{ env.NAMESPACE }}
@@ -577,11 +579,13 @@ jobs:
           kubectl get events -n ${{ env.NAMESPACE }} --sort-by=.lastTimestamp | tail -50
 
       - name: Verify Ingress
+        if: always()
         run: |
           kubectl get ingress ui -n ${{ env.NAMESPACE }}
           kubectl describe ingress ui -n ${{ env.NAMESPACE }} 
         
       - name: Get ALB DNS
+        if: always()
         id: alb
         run: |
           echo "Waiting for ALB provisioning..."
