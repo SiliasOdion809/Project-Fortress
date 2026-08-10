@@ -86,3 +86,8 @@ output "postgres_secret_arn" {
   description = "ARN of the PostgreSQL Secret"
   value       = module.secrets_manager.postgres_secret_arn
 }
+
+output "kms_key_arn" {
+  description = "ARN of the Project Fortress KMS Key"
+  value       = module.kms.key_arn
+}

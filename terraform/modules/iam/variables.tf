@@ -16,6 +16,11 @@ variable "mysql_secret_arn" {
   type        = string
 }
 
+variable "postgres_secret_arn" {
+  description = "ARN of the PostgreSQL secret"
+  type        = string
+}
+
 variable "environment_parameter_arn" {
   description = "ARN of the SSM parameter for the environment"
   type        = string
@@ -53,5 +58,10 @@ variable "github_subject_patterns" {
 
 variable "terraform_state_bucket_name" {
   description = "Terraform state bucket name"
+  type        = string
+}
+
+variable "kms_key_arn" {
+  description = "ARN of the Project Fortress KMS key"
   type        = string
 }

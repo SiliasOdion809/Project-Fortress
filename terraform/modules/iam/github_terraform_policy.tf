@@ -218,10 +218,15 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
     effect = "Allow"
 
     actions = [
-      "kms:*"
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
     ]
 
-    resources = ["*"]
+    resources = [
+      var.kms_key_arn
+    ]
   }
 
   #
@@ -234,10 +239,14 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
     effect = "Allow"
 
     actions = [
-      "secretsmanager:*"
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
     ]
 
-    resources = ["*"]
+    resources = [
+    var.mysql_secret_arn,
+    var.postgres_secret_arn
+   ]
   }
 
   #
@@ -250,10 +259,14 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
     effect = "Allow"
 
     actions = [
-      "ssm:*"
+      "ssm:GetParameter",
+      "ssm:GetParameters"
     ]
 
-    resources = ["*"]
+    resources = [
+      var.environment_parameter_arn,
+      var.assets_bucket_parameter_arn
+    ]
   }
 
   #

@@ -88,10 +88,12 @@ module "iam" {
   oidc_provider_arn           = module.eks.oidc_provider_arn
   oidc_provider               = module.eks.oidc_provider
 
-  mysql_secret_arn = module.secrets_manager.mysql_secret_arn
+  mysql_secret_arn    = module.secrets_manager.mysql_secret_arn
+  postgres_secret_arn = module.secrets_manager.postgres_secret_arn
 
   environment_parameter_arn   = module.ssm.environment_parameter_arn
   assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
+  kms_key_arn                 = module.kms.key_arn
 
   github_oidc_provider_arn = module.oidc.provider_arn
 
