@@ -93,6 +93,9 @@ module "iam" {
 
   environment_parameter_arn   = module.ssm.environment_parameter_arn
   assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
+  cluster_name_parameter_arn  = module.ssm.cluster_name_parameter_arn
+  aws_region_parameter_arn    = module.ssm.aws_region_parameter_arn
+
   kms_key_arn                 = module.kms.key_arn
   eks_kms_key_arn             = module.eks.kms_key_arn
 

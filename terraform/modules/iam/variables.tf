@@ -70,3 +70,13 @@ variable "eks_kms_key_arn" {
   description = "ARN of the EKS KMS key"
   type        = string
 }
+
+variable "cluster_name_parameter_arn" {
+  description = "ARN of the cluster_name SSM parameter"
+  type        = string
+}
+
+variable "aws_region_parameter_arn" {
+  description = "ARN of the aws_region SSM parameter"
+  type        = string
+}

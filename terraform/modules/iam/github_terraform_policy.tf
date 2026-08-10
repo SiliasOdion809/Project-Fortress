@@ -277,12 +277,15 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
 
     actions = [
       "ssm:GetParameter",
-      "ssm:GetParameters"
+      "ssm:GetParameters",
+      "ssm:DescribeParameters"
     ]
 
-    resources = [
+  resources = [
       var.environment_parameter_arn,
-      var.assets_bucket_parameter_arn
+      var.assets_bucket_parameter_arn,
+      var.cluster_name_parameter_arn,
+      var.aws_region_parameter_arn
     ]
   }
 
