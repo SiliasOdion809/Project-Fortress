@@ -224,7 +224,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "kms:ListResourceTags",
       "kms:Encrypt",
       "kms:Decrypt",
-      "kms:GenerateDataKey"
+      "kms:GenerateDataKey",
+      "kms:ListAliases"
     ]
 
     resources = [
@@ -243,7 +244,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
 
     actions = [
       "secretsmanager:GetSecretValue",
-      "secretsmanager:DescribeSecret"
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetResourcePolicy"
     ]
 
     resources = [
