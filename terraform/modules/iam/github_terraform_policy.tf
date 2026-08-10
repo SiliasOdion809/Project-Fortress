@@ -269,24 +269,34 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
   #
   # SSM
   #
-  statement {
-
-    sid = "SSM"
+    statement {
+    sid    = "SSMReadParameters"
 
     effect = "Allow"
 
     actions = [
       "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:DescribeParameters"
+      "ssm:GetParameters"
     ]
 
-  resources = [
+    resources = [
       var.environment_parameter_arn,
       var.assets_bucket_parameter_arn,
       var.cluster_name_parameter_arn,
       var.aws_region_parameter_arn
     ]
+  }
+
+  statement {
+    sid    = "SSMDescribe"
+
+    effect = "Allow"
+
+    actions = [
+      "ssm:DescribeParameters"
+    ]
+
+    resources = ["*"]
   }
 
   #
