@@ -218,10 +218,13 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
     effect = "Allow"
 
     actions = [
-      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GetKeyPolicy",
+      "kms:GetKeyRotationStatus",
+      "kms:ListResourceTags",
       "kms:Encrypt",
-      "kms:GenerateDataKey",
-      "kms:DescribeKey"
+      "kms:Decrypt",
+      "kms:GenerateDataKey"
     ]
 
     resources = [
