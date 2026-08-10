@@ -94,6 +94,7 @@ module "iam" {
   environment_parameter_arn   = module.ssm.environment_parameter_arn
   assets_bucket_parameter_arn = module.ssm.assets_bucket_parameter_arn
   kms_key_arn                 = module.kms.key_arn
+  eks_kms_key_arn             = module.eks.kms_key_arn
 
   github_oidc_provider_arn = module.oidc.provider_arn
 

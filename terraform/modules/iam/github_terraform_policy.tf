@@ -224,13 +224,25 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "kms:ListResourceTags",
       "kms:Encrypt",
       "kms:Decrypt",
-      "kms:GenerateDataKey",
-      "kms:ListAliases"
+      "kms:GenerateDataKey"
     ]
 
     resources = [
-      var.kms_key_arn
+      var.kms_key_arn,
+      var.eks_kms_key_arn
     ]
+  }
+
+  statement {
+    sid    = "KMSListAliases"
+
+    effect = "Allow"
+
+    actions = [
+      "kms:ListAliases"
+    ]
+
+    resources = ["*"]
   }
 
   #

@@ -65,3 +65,8 @@ variable "kms_key_arn" {
   description = "ARN of the Project Fortress KMS key"
   type        = string
 }
+
+variable "eks_kms_key_arn" {
+  description = "ARN of the EKS KMS key"
+  type        = string
+}
