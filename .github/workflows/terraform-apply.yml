@@ -55,7 +55,7 @@ jobs:
       - name: Configure kubeconfig
         run: |
           aws eks update-kubeconfig \
-            --name project-bedrock-cluster \
+            --name project-fortress-cluster \
             --region us-east-1
 
       - name: Verify Kubernetes Access
@@ -77,7 +77,7 @@ jobs:
           eks/aws-load-balancer-controller \
           --namespace kube-system \
           --create-namespace \
-          --set clusterName=project-bedrock-cluster \
+          --set clusterName=project-fortress-cluster \
           --set region=us-east-1 \
           --set serviceAccount.create=true \
           --set serviceAccount.name=aws-load-balancer-controller \
