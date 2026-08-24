@@ -12,7 +12,7 @@ variable "dynamodb_policy_arn" {
 
 variable "cluster_name" {
   type = string
-  default = "project-bedrock-cluster"
+  default = "project-fortress-cluster"
 }
 
 variable "github_deployment_role_arn" {
