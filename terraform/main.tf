@@ -49,6 +49,11 @@ module "eks" {
   github_deployment_role_arn = module.iam.github_deployment_role_arn
   cloud_admin_arn            = "arn:aws:iam::561876735341:user/Cloud-admin"
 
+  kms_key_administrators = [
+    module.iam.github_deployment_role_arn,
+    "arn:aws:iam::561876735341:user/Cloud-admin",
+  ]
+
 }
 
 module "rds" {

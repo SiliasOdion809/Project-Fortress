@@ -13,6 +13,8 @@ module "eks" {
     "scheduler"
   ]
 
+  kms_key_administrators = var.kms_key_administrators
+
   enable_cluster_creator_admin_permissions = false
 
   vpc_id = var.vpc_id

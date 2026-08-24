@@ -23,3 +23,7 @@ variable "github_deployment_role_arn" {
 variable "cloud_admin_arn" {
   type = string
 }
+
+variable "kms_key_administrators" {
+  type = list(string)
+}
