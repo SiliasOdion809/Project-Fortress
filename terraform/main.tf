@@ -101,8 +101,8 @@ module "iam" {
   cluster_name_parameter_arn  = module.ssm.cluster_name_parameter_arn
   aws_region_parameter_arn    = module.ssm.aws_region_parameter_arn
 
-  kms_key_arn                 = module.kms.key_arn
-  eks_kms_key_arn             = module.eks.kms_key_arn
+  kms_key_arn     = module.kms.key_arn
+  eks_kms_key_arn = module.eks.kms_key_arn
 
   github_oidc_provider_arn = module.oidc.provider_arn
 
@@ -124,6 +124,11 @@ module "lambda" {
 
 module "monitoring" {
   source = "./modules/monitoring"
+
+  cluster_name         = module.eks.cluster_name
+  aws_region           = var.aws_region
+  lambda_function_name = module.lambda.lambda_name
+  sns_topic_arn        = module.notifications.topic_arn
 }
 
 module "ecr" {
@@ -145,3 +150,11 @@ module "ecr" {
     module.eks
   ]
 }*/
+
+module "notifications" {
+  source = "./modules/notifications"
+
+  project_name = "project-fortress"
+  environment  = "dev"
+  alert_email  = var.alert_email
+}

@@ -51,3 +51,9 @@ variable "enable_addons" {
   type        = bool
   default     = false
 }
+
+variable "alert_email" {
+  description = "Email address for Project Fortress CloudWatch alerts"
+  type        = string
+  default     = "Siliasodion809@gmail.com"
+}
