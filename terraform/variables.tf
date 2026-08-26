@@ -43,7 +43,7 @@ variable "postgres_password" {
 variable "asset_bucket_name" {
   description = "S3 bucket name for assets"
   type        = string
-  default     = "bedrock-assets-alt-soe-025-3757"
+  default     = "fortress-assets-alt-soe-025-3757"
 }
 
 variable "enable_addons" {

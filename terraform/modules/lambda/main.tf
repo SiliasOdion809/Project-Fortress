@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "asset_processor" {
 
-  function_name = "bedrock-asset-processor"
+  function_name = "fortress-asset-processor"
 
   filename = "../lambda/src/function.zip"
 

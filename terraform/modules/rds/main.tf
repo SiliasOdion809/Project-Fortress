@@ -1,14 +1,14 @@
-resource "aws_db_subnet_group" "bedrock_db_subnet_group" {
-  name       = "bedrock-db-subnet-group"
+resource "aws_db_subnet_group" "fortress_db_subnet_group" {
+  name       = "fortress-db-subnet-group"
   subnet_ids = var.private_subnet_ids
 
   tags = {
-    Name = "bedrock-db-subnet-group"
+    Name = "fortress-db-subnet-group"
   }
 }
 
 resource "aws_security_group" "rds_sg" {
-  name        = "bedrock-rds-sg"
+  name        = "fortress-rds-sg"
   description = "RDS Security Group"
   vpc_id      = var.vpc_id
 
@@ -35,7 +35,7 @@ resource "aws_security_group" "rds_sg" {
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier        = "bedrock-mysql"
+  identifier        = "fortress-mysql"
   allocated_storage = 20
   engine            = "mysql"
   engine_version    = "8.0"
@@ -49,12 +49,12 @@ resource "aws_db_instance" "mysql" {
   publicly_accessible = false
   skip_final_snapshot = true
 
-  db_subnet_group_name   = aws_db_subnet_group.bedrock_db_subnet_group.name
+  db_subnet_group_name   = aws_db_subnet_group.fortress_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier        = "bedrock-postgres"
+  identifier        = "fortress-postgres"
   allocated_storage = 20
   engine            = "postgres"
   engine_version    = "15"
@@ -68,6 +68,6 @@ resource "aws_db_instance" "postgres" {
   publicly_accessible = false
   skip_final_snapshot = true
 
-  db_subnet_group_name   = aws_db_subnet_group.bedrock_db_subnet_group.name
+  db_subnet_group_name   = aws_db_subnet_group.fortress_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 }

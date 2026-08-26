@@ -4,7 +4,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name    = "project-bedrock-vpc"
+    Name    = "project-fortress-vpc"
     Project = var.project_tag
   }
 }
@@ -79,7 +79,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name    = "project-bedrock-igw"
+    Name    = "project-fortress-igw"
     Project = var.project_tag
   }
 }
@@ -97,7 +97,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.public_1.id
 
   tags = {
-    Name    = "project-bedrock-nat"
+    Name    = "project-fortress-nat"
     Project = var.project_tag
   }
 

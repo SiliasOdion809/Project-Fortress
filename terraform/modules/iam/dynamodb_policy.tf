@@ -1,5 +1,5 @@
 resource "aws_iam_policy" "dynamodb_access" {
-  name = "bedrock-dynamodb-access"
+  name = "fortress-dynamodb-access"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -15,8 +15,8 @@ resource "aws_iam_policy" "dynamodb_access" {
           "dynamodb:Scan"
         ]
         Resource = [
-          "arn:aws:dynamodb:us-east-1:561876735341:table/bedrock-orders",
-          "arn:aws:dynamodb:us-east-1:561876735341:table/bedrock-orders/*"
+          "arn:aws:dynamodb:us-east-1:561876735341:table/fortress-orders",
+          "arn:aws:dynamodb:us-east-1:561876735341:table/fortress-orders/*"
         ]
       }
     ]

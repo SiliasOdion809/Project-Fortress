@@ -3,5 +3,5 @@
 kubectl get pods -A
 
 aws eks describe-cluster \
---name project-bedrock-cluster \
+--name project-fortress-cluster \
 --region us-east-1

@@ -1,3 +1,3 @@
 variable "table_name" {
-  default = "bedrock-orders"
+  default = "fortress-orders"
 }

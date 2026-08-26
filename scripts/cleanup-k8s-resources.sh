@@ -11,7 +11,7 @@ set -euo pipefail
 ########################################
 
 AWS_REGION="us-east-1"
-CLUSTER_NAME="project-bedrock-cluster"
+CLUSTER_NAME="project-fortress-cluster"
 
 APP_NAMESPACE="retail-app"
 

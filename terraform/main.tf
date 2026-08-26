@@ -88,7 +88,7 @@ module "iam" {
   environment  = var.environment
   tags         = local.common_tags
 
-  terraform_state_bucket_name = "project-bedrock-tfstate-silias"
+  terraform_state_bucket_name = "project-fortress-tfstate-silias"
   assets_bucket_arn           = module.s3.assets_bucket_arn
   oidc_provider_arn           = module.eks.oidc_provider_arn
   oidc_provider               = module.eks.oidc_provider

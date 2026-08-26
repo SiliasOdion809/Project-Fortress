@@ -1,5 +1,5 @@
 resource "aws_iam_role" "lambda_role" {
-  name = "bedrock-asset-processor-role"
+  name = "fortress-asset-processor-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,8 +18,8 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
-resource "aws_iam_user" "bedrock_dev_view" {
-  name = "bedrock-dev-view"
+resource "aws_iam_user" "fortress_dev_view" {
+  name = "fortress-dev-view"
 
   tags = {
     Project = "karatu-2025-capstone"
@@ -27,14 +27,14 @@ resource "aws_iam_user" "bedrock_dev_view" {
 }
 
 resource "aws_iam_user_policy_attachment" "readonly" {
-  user = aws_iam_user.bedrock_dev_view.name
+  user = aws_iam_user.fortress_dev_view.name
 
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
 }
 
-resource "aws_iam_user_policy" "bedrock_dev_s3_upload" {
-  name = "bedrock-dev-s3-upload"
-  user = aws_iam_user.bedrock_dev_view.name
+resource "aws_iam_user_policy" "fortress_dev_s3_upload" {
+  name = "fortress-dev-s3-upload"
+  user = aws_iam_user.fortress_dev_view.name
 
   policy = jsonencode({
     Version = "2012-10-17"

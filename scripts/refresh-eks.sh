@@ -5,7 +5,7 @@ set -e
 
 # Variables
 AWS_REGION="us-east-1"
-CLUSTER_NAME="project-bedrock-cluster"
+CLUSTER_NAME="project-fortress-cluster"
 
 echo "========================================="
 echo "Refreshing EKS kubeconfig..."
