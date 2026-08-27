@@ -193,6 +193,25 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
   }
 
   #
+  # SNS
+  #
+  statement {
+    sid    = "SNS"
+    effect = "Allow"
+
+    actions = [
+      "sns:GetTopicAttributes",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+      "sns:Unsubscribe",
+      "sns:ListSubscriptionsByTopic",
+      "sns:GetSubscriptionAttributes"
+    ]
+
+    resources = ["*"]
+  }
+  
+  #
   # DynamoDB
   #
   statement {
