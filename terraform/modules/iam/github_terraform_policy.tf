@@ -205,7 +205,8 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "sns:Subscribe",
       "sns:Unsubscribe",
       "sns:ListSubscriptionsByTopic",
-      "sns:GetSubscriptionAttributes"
+      "sns:GetSubscriptionAttributes",
+      "sns:ListTagsForResource"
     ]
 
     resources = ["*"]
