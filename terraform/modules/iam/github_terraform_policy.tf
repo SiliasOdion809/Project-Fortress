@@ -209,7 +209,10 @@ data "aws_iam_policy_document" "github_terraform_permissions" {
       "sns:ListTagsForResource"
     ]
 
-    resources = ["*"]
+    resources = [
+      "arn:aws:sns:us-east-1:561876735341:project-fortress-dev-alerts",
+      "*"
+   ]
   }
   
   #
