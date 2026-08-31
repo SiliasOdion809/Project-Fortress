@@ -27,3 +27,18 @@ variable "cloud_admin_arn" {
 variable "kms_key_administrators" {
   type = list(string)
 }
+
+variable "node_min_size" {
+  type    = number
+  default = 2
+}
+
+variable "node_max_size" {
+  type    = number
+  default = 3
+}
+
+variable "node_desired_size" {
+  type    = number
+  default = 3
+}
