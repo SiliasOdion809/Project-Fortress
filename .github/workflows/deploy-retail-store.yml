@@ -679,3 +679,93 @@ jobs:
 
             echo "Application never became healthy."
             exit 1
+
+  scalability-and-resilience:
+    name: Application Scalability and Resilience
+    timeout-minutes: 30
+
+    needs: smoke-tests
+
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
+
+      - name: Verify AWS Identity
+        run: |
+          aws sts get-caller-identity
+
+      - name: Configure Kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region "${{ env.AWS_REGION }}" \
+            --name "${{ env.CLUSTER_NAME }}"
+
+      - name: Verify Kubernetes Access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes -o wide
+
+      - name: Verify Scalability and Resilience Script
+        run: |
+          test -f scripts/scalability-and-resilience.sh
+
+          chmod +x scripts/scalability-and-resilience.sh
+
+          echo "Scalability and resilience script found."
+          ls -l scripts/scalability-and-resilience.sh
+
+      - name: Run Scalability and Resilience Automation
+        run: |
+          ./scripts/scalability-and-resilience.sh
+
+      - name: Phase 4 Summary
+        if: always()
+        run: |
+          echo "=============================================="
+          echo " APPLICATION SCALABILITY & RESILIENCE SUMMARY"
+          echo "=============================================="
+
+          echo ""
+          echo "Cluster:"
+          kubectl get nodes -o wide
+
+          echo ""
+          echo "Application Deployments:"
+          kubectl get deployments -n "${{ env.NAMESPACE }}"
+
+          echo ""
+          echo "Application Pods:"
+          kubectl get pods -n "${{ env.NAMESPACE }}"
+
+          echo ""
+          echo "HPA:"
+          kubectl get hpa -n "${{ env.NAMESPACE }}" || true
+
+          echo ""
+          echo "Ingress:"
+          kubectl get ingress -n "${{ env.NAMESPACE }}" || true
+
+          echo ""
+          echo "Services:"
+          kubectl get svc -n "${{ env.NAMESPACE }}" || true
+
+          echo ""
+          echo "=============================================="
