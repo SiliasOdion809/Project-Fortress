@@ -91,15 +91,44 @@ fi
 
 echo "UI HPA: minReplicas=$HPA_MIN maxReplicas=$HPA_MAX targetCPU=${HPA_TARGET}%"
 
-INITIAL_REPLICAS=$(kubectl get deployment "$UI_DEPLOYMENT" -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}')
-INITIAL_REPLICAS=${INITIAL_REPLICAS:-0}
-
-if (( INITIAL_REPLICAS < HPA_MIN )); then
-    echo "ERROR: UI has only $INITIAL_REPLICAS ready replicas; expected at least $HPA_MIN."
+if (( HPA_MIN != 1 )); then
+    echo "ERROR: This automated test expects UI HPA minReplicas=1."
     exit 1
 fi
 
-echo "Initial ready UI replicas: $INITIAL_REPLICAS"
+if (( HPA_MAX != 10 )); then
+    echo "ERROR: This automated test expects UI HPA maxReplicas=10."
+    exit 1
+fi
+
+echo
+echo "Establishing deterministic baseline: waiting for UI to return to $HPA_MIN ready replica(s)..."
+BASELINE_SUCCESS=false
+
+for i in {1..40}; do
+    INITIAL_REPLICAS=$(kubectl get deployment "$UI_DEPLOYMENT" -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}')
+    INITIAL_REPLICAS=${INITIAL_REPLICAS:-0}
+
+    HPA_LINE=$(kubectl get hpa "$UI_DEPLOYMENT" -n "$NAMESPACE" --no-headers 2>/dev/null || true)
+    echo "[$i/40] $HPA_LINE | ready replicas: $INITIAL_REPLICAS"
+
+    if (( INITIAL_REPLICAS == HPA_MIN )); then
+        BASELINE_SUCCESS=true
+        break
+    fi
+
+    sleep 15
+done
+
+if [[ "$BASELINE_SUCCESS" != "true" ]]; then
+    echo "ERROR: UI did not return to the configured minimum of $HPA_MIN replicas."
+    echo "Final HPA state:"
+    kubectl describe hpa "$UI_DEPLOYMENT" -n "$NAMESPACE"
+    exit 1
+fi
+
+INITIAL_REPLICAS=$HPA_MIN
+echo "Baseline established: $INITIAL_REPLICAS ready UI replica(s)."
 
 echo
 echo "[9/10] Running automated HPA scale-up / scale-down test..."
@@ -126,19 +155,28 @@ done
 sleep 20
 
 echo
-echo "Monitoring HPA scale-up..."
+echo "Monitoring HPA scale-up to the configured maximum of $HPA_MAX replicas..."
 SCALE_UP_SUCCESS=false
+MAX_OBSERVED_REPLICAS=$INITIAL_REPLICAS
 
-for i in {1..30}; do
+for i in {1..40}; do
     CURRENT_REPLICAS=$(kubectl get deployment "$UI_DEPLOYMENT" -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}')
     CURRENT_REPLICAS=${CURRENT_REPLICAS:-0}
+
+    DESIRED_REPLICAS=$(kubectl get deployment "$UI_DEPLOYMENT" -n "$NAMESPACE" -o jsonpath='{.spec.replicas}')
+    DESIRED_REPLICAS=${DESIRED_REPLICAS:-0}
+
     HPA_LINE=$(kubectl get hpa "$UI_DEPLOYMENT" -n "$NAMESPACE" --no-headers 2>/dev/null || true)
 
-    echo "[$i/30] $HPA_LINE | ready replicas: $CURRENT_REPLICAS"
+    if (( CURRENT_REPLICAS > MAX_OBSERVED_REPLICAS )); then
+        MAX_OBSERVED_REPLICAS=$CURRENT_REPLICAS
+    fi
 
-    if (( CURRENT_REPLICAS > INITIAL_REPLICAS )); then
+    echo "[$i/40] $HPA_LINE | desired replicas: $DESIRED_REPLICAS | ready replicas: $CURRENT_REPLICAS"
+
+    if (( CURRENT_REPLICAS >= HPA_MAX && DESIRED_REPLICAS >= HPA_MAX )); then
         SCALE_UP_SUCCESS=true
-        echo "✓ HPA scale-up detected: $INITIAL_REPLICAS -> $CURRENT_REPLICAS replicas."
+        echo "✓ HPA scale-up reached the configured maximum: $INITIAL_REPLICAS -> $CURRENT_REPLICAS replicas."
         break
     fi
 
@@ -146,7 +184,8 @@ for i in {1..30}; do
 done
 
 if [[ "$SCALE_UP_SUCCESS" != "true" ]]; then
-    echo "ERROR: HPA did not scale above the initial replica count."
+    echo "ERROR: HPA did not reach its configured maximum of $HPA_MAX replicas."
+    echo "Maximum ready replicas observed: $MAX_OBSERVED_REPLICAS"
     echo "Final HPA state:"
     kubectl describe hpa "$UI_DEPLOYMENT" -n "$NAMESPACE"
     exit 1
@@ -248,7 +287,7 @@ echo
 echo "Test result:"
 echo "  Initial replicas: $INITIAL_REPLICAS"
 echo "  HPA target CPU:   ${HPA_TARGET}%"
-echo "  Maximum replicas: $HPA_MAX"
+echo "  Maximum replicas: $HPA_MAX (observed ready: $MAX_OBSERVED_REPLICAS)"
 echo "  Scale-up:         PASSED"
 echo "  Scale-down:       PASSED"
 echo "  ALB health:       PASSED"
