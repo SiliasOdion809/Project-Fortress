@@ -725,16 +725,16 @@ jobs:
 
       - name: Verify Scalability and Resilience Script
         run: |
-          test -f scripts/scalability-and-resilience.sh
+          test -f scripts/scalability-and-resilience-automated.sh
 
-          chmod +x scripts/scalability-and-resilience.sh
+          chmod +x scripts/scalability-and-resilience-automated.sh
 
           echo "Scalability and resilience script found."
-          ls -l scripts/scalability-and-resilience.sh
+          ls -l scripts/scalability-and-resilience-automated.sh
 
       - name: Run Scalability and Resilience Automation
         run: |
-          ./scripts/scalability-and-resilience.sh
+          ./scripts/scalability-and-resilience-automated.sh
 
       - name: Phase 4 Summary
         if: always()
